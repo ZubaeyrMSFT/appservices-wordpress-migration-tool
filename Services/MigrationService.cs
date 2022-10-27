@@ -16,18 +16,18 @@ namespace WordPressMigrationTool
             ExportService exportService = new ExportService();
 
             Result exporttRes = exportService.exportDataFromSourceSite(sourceSite);
-            if (exporttRes.status == Status.Failed)
+            if (exporttRes.status == Status.Failed || exporttRes.status == Status.Cancelled)
             {
                 return exporttRes;
             }
 
             Result importRes = importService.importDataToDestinationSite(destinationSite);
-            if (importRes.status == Status.Failed)
+            if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
             {
                 return importRes;
             }
 
-            return new Result(Status.Success, Constants.SUCESS_MESSAGE);
+            return new Result(Status.Completed, Constants.SUCESS_MESSAGE);
         }
     }
 }

@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace WordPressMigrationTool
 {
     public enum Status {
-        Success,
+        Completed,
         Failed,
+        Cancelled
     };
 
     public class Result

@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Net;
-using System.Linq.Expressions;
 using System.Threading;
 using System.IO;
 using WordPressMigrationTool.Utilities;
 
 namespace WordPressMigrationTool
 {
-    public class ExportWindowsAppServiceData
+    public class WindowsAppDataExportService
     {
 
         private string _ftpUserName;
@@ -20,11 +15,11 @@ namespace WordPressMigrationTool
         private bool _result = false;
         private string _message = null;
         private int _retriesCount = 0;
-        private long _lastCheckpointBytesForDisplay = 0;
+        private long _lastCheckpointCountForDisplay = 0;
         private readonly SemaphoreSlim _downloadLock = new SemaphoreSlim(0);
 
 
-        public ExportWindowsAppServiceData(string appServiceName, string ftpUserName, string ftpPassword) {
+        public WindowsAppDataExportService(string appServiceName, string ftpUserName, string ftpPassword) {
             if (string.IsNullOrWhiteSpace(appServiceName)) 
             {
                 throw new ArgumentException("Invalid AppService name found! " +
@@ -60,7 +55,7 @@ namespace WordPressMigrationTool
             }
 
 
-            while (_retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
+            while (this._retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
             {
                  if (File.Exists(outputFilePath))
                 {
@@ -75,16 +70,16 @@ namespace WordPressMigrationTool
                     client.DownloadFileAsync(new Uri(appServiceKuduURL), outputFilePath);
                     this._downloadLock.Wait();
 
-                    if (!_result)
+                    if (!this._result)
                     {
-                        _retriesCount++;
-                        if (_retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
+                        this._retriesCount++;
+                        if (this._retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
                         {
                             return new Result(Status.Failed, this._message);
                         }
                         else
                         {
-                            Console.WriteLine("Retrying Download... " + _retriesCount);
+                            Console.WriteLine("Retrying App Service data download... " + this._retriesCount);
                             continue;
                         }
                     }
@@ -92,7 +87,7 @@ namespace WordPressMigrationTool
                 }
             }
 
-            return new Result(Status.Success, this._message);
+            return new Result(Status.Completed, this._message);
         }
 
         private void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
@@ -107,21 +102,22 @@ namespace WordPressMigrationTool
                     this._retriesCount = Constants.MAX_WIN_APPSERVICE_RETRIES + 1;
                 }
 
-                _downloadLock.Release();
+                this._downloadLock.Release();
                 return;
             }
 
-            _result = !e.Cancelled;
-            if (!_result)
+            this._result = !e.Cancelled;
+            if (!this._result)
             {
-                this._message = e.Error.Message;
+                this._retriesCount = Constants.MAX_WIN_APPSERVICE_RETRIES + 1;
+                this._message = "Download Cancelled";
             }
             else
             {
                 this._message = "Download Completed";
             }
 
-            _downloadLock.Release();    
+            this._downloadLock.Release();    
         }
 
         private void Client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
@@ -134,9 +130,9 @@ namespace WordPressMigrationTool
                 Console.WriteLine("Download Progres - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) 
                     + " MB received out of " + String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB)) + " MB");
             }
-            else if (e.BytesReceived  - this._lastCheckpointBytesForDisplay >= displayWindowSize)
+            else if (e.BytesReceived  - this._lastCheckpointCountForDisplay >= displayWindowSize)
             {
-                this._lastCheckpointBytesForDisplay = e.BytesReceived;
+                this._lastCheckpointCountForDisplay = e.BytesReceived;
                 Console.WriteLine("Download Progress - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) + " MB received out of " 
                     + ((e.TotalBytesToReceive == -1) ? "NA" : String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB))) + " MB");
             }
