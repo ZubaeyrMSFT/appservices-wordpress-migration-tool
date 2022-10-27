@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Net;
 using System.IO;
 using WordPressMigrationTool.Utilities;
 using MySql.Data.MySqlClient;
-using System.CodeDom;
-using System.Threading;
-using System.Data.Common;
+using System.IO.Compression;
 
 namespace WordPressMigrationTool
 {
@@ -59,7 +56,8 @@ namespace WordPressMigrationTool
         public Result exportData()
         {
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
-            string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_PATH);
+            string outputSqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH);
+            string outputZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
             string mysqlConnectionString = Constants.getMySQLConnectionString(this._serverHostName, this._username, 
                 this._password, this._databaseName, this._charset);
 
@@ -71,9 +69,14 @@ namespace WordPressMigrationTool
 
             while (_retriesCount <= Constants.MAX_WIN_MYSQLDATA_RETRIES)
             {
-                if (File.Exists(outputFilePath))
+                if (File.Exists(outputSqlFilePath))
                 {
-                    File.Delete(outputFilePath);
+                    File.Delete(outputSqlFilePath);
+                }
+                
+                if (File.Exists(outputZipFilePath)) 
+                {
+                    File.Delete(outputZipFilePath);
                 }
 
                 using (MySqlConnection mConnection = new MySqlConnection(mysqlConnectionString))
@@ -90,7 +93,7 @@ namespace WordPressMigrationTool
                                 mBackup.ExportInfo.AddCreateDatabase = true;
                                 mBackup.ExportProgressChanged += MBackup_ExportProgressChanged;
                                 mBackup.ExportCompleted += MBackup_ExportCompleted;
-                                mBackup.ExportToFile(outputFilePath);
+                                mBackup.ExportToFile(outputSqlFilePath);
                                 mConnection.Close();
                             }
                             catch (Exception ex) when (ex is MySqlException | ex is InvalidOperationException)
@@ -113,6 +116,17 @@ namespace WordPressMigrationTool
                                     continue;
                                 }
                             }
+
+                            using (ZipArchive archive = ZipFile.Open(outputZipFilePath, ZipArchiveMode.Create))
+                            {
+                                archive.CreateEntryFromFile(outputSqlFilePath, Path.GetFileName(outputSqlFilePath));
+                            }
+
+                            if (File.Exists(outputSqlFilePath))
+                            {
+                                File.Delete(outputSqlFilePath);
+                            }
+
                             break;
                         }
                     }
