@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
+using System.Linq.Expressions;
+using System.Threading;
+using System.IO;
 
 namespace WordPressMigrationTool
 {
     public class ExportService
     {
+
         public Result exportDataFromSourceSite(SiteInfo sourceSite)
         {
             /*
@@ -19,12 +24,12 @@ namespace WordPressMigrationTool
             return null;
         }
 
-        private Boolean exportAppServiceData()
+        public Boolean exportAppServiceData()
         {
             return false;
         }
 
-        private Boolean exportDatbaseContent()
+        public Boolean exportDatbaseContent()
         {
             return false;
         }

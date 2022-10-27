@@ -20,5 +20,10 @@ namespace WordPressMigrationTool
             this.status = status;
             this.message = message;
         }
+
+        public override string ToString()
+        {
+            return "[status=" + this.status + " , message=" + this.message + "]";
+        }
     }
 }
