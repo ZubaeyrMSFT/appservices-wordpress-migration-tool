@@ -45,7 +45,7 @@ namespace WordPressMigrationTool
 
         public Result exportData()
         {
-            string appServiceKuduURL = Constants.getKuduApiForZipDownload(this._appServiceName);
+            string appServiceKuduURL = MigrationUtils.getKuduApiForZipDownload(this._appServiceName);
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
 
@@ -57,11 +57,8 @@ namespace WordPressMigrationTool
 
             while (this._retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
             {
-                 if (File.Exists(outputFilePath))
-                {
-                    File.Delete(outputFilePath);
-                }
-               
+                MigrationUtils.deleteFileIfExists(outputFilePath);
+
                 using (var client = new WebClient())
                 {
                     client.Credentials = new NetworkCredential(this._ftpUserName, this._ftpPassword);
@@ -75,6 +72,7 @@ namespace WordPressMigrationTool
                         this._retriesCount++;
                         if (this._retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
                         {
+                            MigrationUtils.deleteFileIfExists(outputFilePath);
                             return new Result(Status.Failed, this._message);
                         }
                         else

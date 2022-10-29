@@ -58,7 +58,7 @@ namespace WordPressMigrationTool
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputSqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH);
             string outputZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
-            string mysqlConnectionString = Constants.getMySQLConnectionString(this._serverHostName, this._username, 
+            string mysqlConnectionString = MigrationUtils.getMySQLConnectionString(this._serverHostName, this._username, 
                 this._password, this._databaseName, this._charset);
 
             if (!Directory.Exists(directoryPath))
@@ -69,15 +69,8 @@ namespace WordPressMigrationTool
 
             while (_retriesCount <= Constants.MAX_WIN_MYSQLDATA_RETRIES)
             {
-                if (File.Exists(outputSqlFilePath))
-                {
-                    File.Delete(outputSqlFilePath);
-                }
-                
-                if (File.Exists(outputZipFilePath)) 
-                {
-                    File.Delete(outputZipFilePath);
-                }
+                MigrationUtils.deleteFileIfExists(outputSqlFilePath);
+                MigrationUtils.deleteFileIfExists(outputZipFilePath);
 
                 using (MySqlConnection mConnection = new MySqlConnection(mysqlConnectionString))
                 {
@@ -108,6 +101,8 @@ namespace WordPressMigrationTool
                                 this._retriesCount++;
                                 if (this._retriesCount > Constants.MAX_WIN_MYSQLDATA_RETRIES)
                                 {
+                                    MigrationUtils.deleteFileIfExists(outputSqlFilePath);
+                                    MigrationUtils.deleteFileIfExists(outputZipFilePath);
                                     return new Result(Status.Failed, this._message);
                                 }
                                 else
@@ -122,11 +117,7 @@ namespace WordPressMigrationTool
                                 archive.CreateEntryFromFile(outputSqlFilePath, Path.GetFileName(outputSqlFilePath));
                             }
 
-                            if (File.Exists(outputSqlFilePath))
-                            {
-                                File.Delete(outputSqlFilePath);
-                            }
-
+                            MigrationUtils.deleteFileIfExists(outputSqlFilePath);
                             break;
                         }
                     }
