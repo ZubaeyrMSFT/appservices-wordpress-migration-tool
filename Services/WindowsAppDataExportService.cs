@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using System.IO;
 using WordPressMigrationTool.Utilities;
+using System.Diagnostics;
 
 namespace WordPressMigrationTool
 {
@@ -49,6 +50,10 @@ namespace WordPressMigrationTool
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
 
+            Console.WriteLine("Exporting App Service data to " + outputFilePath);
+            Stopwatch timer = Stopwatch.StartNew();
+
+
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
@@ -85,6 +90,7 @@ namespace WordPressMigrationTool
                 }
             }
 
+            Console.WriteLine("Sucessfully exported App Service data... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
             return new Result(Status.Completed, this._message);
         }
 

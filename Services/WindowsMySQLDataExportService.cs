@@ -3,6 +3,7 @@ using System.IO;
 using WordPressMigrationTool.Utilities;
 using MySql.Data.MySqlClient;
 using System.IO.Compression;
+using System.Diagnostics;
 
 namespace WordPressMigrationTool
 {
@@ -60,6 +61,10 @@ namespace WordPressMigrationTool
             string outputZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
             string mysqlConnectionString = HelperUtils.getMySQLConnectionStringForExternalMySQLClientTool(this._serverHostName, this._username, 
                 this._password, this._databaseName, this._charset);
+
+            Console.WriteLine("Exporting MySQL database dump to " + outputZipFilePath);
+            Stopwatch timer = Stopwatch.StartNew();
+
 
             if (!Directory.Exists(directoryPath))
             {
@@ -124,6 +129,7 @@ namespace WordPressMigrationTool
                 }
             }
 
+            Console.WriteLine("Sucessfully exported MySQL database dump... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
             return new Result(Status.Completed, this._message);
         }
 
