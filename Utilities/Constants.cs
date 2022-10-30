@@ -15,5 +15,10 @@ namespace WordPressMigrationTool.Utilities
         public const string SUCCESS_IMPORT_MESSAGE = "Successfully imported the data to Linux WordPress!";
         public const string SUCCESS_MESSAGE = "Migration has been completed successfully!";
 
+        public const string APPSETTING_DATABASE_HOST = "DATABASE_HOST";
+        public const string APPSETTING_DATABASE_NAME = "DATABASE_NAME";
+        public const string APPSETTING_DATABASE_USERNAME = "DATABASE_USERNAME";
+        public const string APPSETTING_DATABASE_PASSWORD = "DATABASE_PASSWORD";
+
     }
 }
