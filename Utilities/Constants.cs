@@ -11,7 +11,9 @@ namespace WordPressMigrationTool.Utilities
 
         public const int MAX_WIN_APPSERVICE_RETRIES = 3;
         public const int MAX_WIN_MYSQLDATA_RETRIES = 3;
-        public const string SUCESS_MESSAGE = "Migration has been completed successfully!";
+        public const string SUCCESS_EXPORT_MESSAGE = "Successfully exported the data from Windows WordPress!";
+        public const string SUCCESS_IMPORT_MESSAGE = "Successfully imported the data to Linux WordPress!";
+        public const string SUCCESS_MESSAGE = "Migration has been completed successfully!";
 
     }
 }

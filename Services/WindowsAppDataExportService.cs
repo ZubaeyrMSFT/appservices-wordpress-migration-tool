@@ -45,7 +45,7 @@ namespace WordPressMigrationTool
 
         public Result exportData()
         {
-            string appServiceKuduURL = MigrationUtils.getKuduApiForZipDownload(this._appServiceName);
+            string appServiceKuduURL = HelperUtils.getKuduApiForZipDownload(this._appServiceName);
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
 
@@ -57,7 +57,7 @@ namespace WordPressMigrationTool
 
             while (this._retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
             {
-                MigrationUtils.deleteFileIfExists(outputFilePath);
+                HelperUtils.deleteFileIfExists(outputFilePath);
 
                 using (var client = new WebClient())
                 {
@@ -72,7 +72,7 @@ namespace WordPressMigrationTool
                         this._retriesCount++;
                         if (this._retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
                         {
-                            MigrationUtils.deleteFileIfExists(outputFilePath);
+                            HelperUtils.deleteFileIfExists(outputFilePath);
                             return new Result(Status.Failed, this._message);
                         }
                         else

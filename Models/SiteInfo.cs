@@ -8,14 +8,15 @@ namespace WordPressMigrationTool
 {
     public class SiteInfo
     {
-        public String webAppName { get; set; }
-        public String resourceGroupName { get; set; }
-        public String wordpressPassword { get; set; }
-        public String wordpressUserName { get; set; }
-        public String databaseHostname { get; set; }
-        public String databaseUsername { get; set; }
-        public String databasePassword { get; set; }
-        public String databaseName { get; set; }
+        public string subscriptionId { get; set; }
+        public string resourceGroupName { get; set; }
+        public string webAppName { get; set; }
+        public string ftpUsername { get; set; }
+        public string ftpPassword { get; set; }
+        public string databaseHostname { get; set; }
+        public string databaseUsername { get; set; }
+        public string databasePassword { get; set; }
+        public string databaseName { get; set; }
 
     }
 }

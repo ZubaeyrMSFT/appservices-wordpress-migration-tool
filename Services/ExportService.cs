@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Azure.ResourceManager.AppService;
+using System;
+using System.Diagnostics;
+using WordPressMigrationTool.Utilities;
 
 namespace WordPressMigrationTool
 {
@@ -7,23 +10,68 @@ namespace WordPressMigrationTool
 
         public Result exportDataFromSourceSite(SiteInfo sourceSite)
         {
-            /*
-             * 1. Create or clean up the temporary data directory
-             * 2. Azure Login & SSH to the App if required
-             * 3. Export the wordpress data wp-content/ folder
-             * 4. Export the datbase dump from MySQL server 
-             */
-            return null;
+            if (string.IsNullOrWhiteSpace(sourceSite.subscriptionId))
+            {
+                return new Result(Status.Failed, "Subscription Id should not be empty!");
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceSite.resourceGroupName))
+            {
+                return new Result(Status.Failed, "Resource Group should not be empty!");
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceSite.webAppName))
+            {
+                return new Result(Status.Failed, "App Service name should not be empty!");
+            }
+
+
+            Console.WriteLine("Retreiving publishing profile and database connection details ... ");
+            Stopwatch timer = Stopwatch.StartNew();
+
+            WebSiteResource webAppResource = AzureManagementUtils.getWebSiteResource(sourceSite.subscriptionId, sourceSite.resourceGroupName, sourceSite.webAppName);
+            PublishingUserData publishingProfile = AzureManagementUtils.getPublishingCredentialsForAppService(webAppResource);
+            string databaseConnectionString = AzureManagementUtils.getDatabaseConnectionString(webAppResource);
+            HelperUtils.parseAndUpdateDatabaseConnectionStringForWinAppService(sourceSite, databaseConnectionString);
+            sourceSite.ftpUsername = publishingProfile.PublishingUserName;
+            sourceSite.ftpPassword = publishingProfile.PublishingPassword;
+
+            Console.WriteLine("Successfully retrieved the details... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            Console.WriteLine("Exporting App Service data to " + Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH));
+            timer.Restart();
+
+            Result result = exportAppServiceData(sourceSite);
+            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            {
+                return result;
+            }
+
+            Console.WriteLine("Successfully exported App Service data... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            Console.WriteLine("Exporting MySql database dump to " + Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH));
+            timer.Restart();
+
+            result = exportDatbaseContent(sourceSite);
+            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            {
+                return result;
+            }
+
+            Console.WriteLine("Successfully exported MySQL database dump... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
         }
 
-        public Boolean exportAppServiceData()
+        private Result exportAppServiceData(SiteInfo sourceSite)
         {
-            return false;
+            WindowsAppDataExportService winAppExpService = new WindowsAppDataExportService(sourceSite.webAppName,
+                sourceSite.ftpUsername, sourceSite.ftpPassword);
+            return winAppExpService.exportData();
         }
 
-        public Boolean exportDatbaseContent()
+        private Result exportDatbaseContent(SiteInfo sourceSite)
         {
-            return false;
+            WindowsMySQLDataExportService winDBExpService = new WindowsMySQLDataExportService(sourceSite.databaseHostname,
+                sourceSite.databaseUsername, sourceSite.databasePassword, sourceSite.databaseName, null);
+            return winDBExpService.exportData();
         }
     }
 }

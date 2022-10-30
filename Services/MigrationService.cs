@@ -23,7 +23,7 @@ namespace WordPressMigrationTool
                 return importRes;
             }
 
-            return new Result(Status.Completed, Constants.SUCESS_MESSAGE);
+            return new Result(Status.Completed, Constants.SUCCESS_MESSAGE);
         }
     }
 }
