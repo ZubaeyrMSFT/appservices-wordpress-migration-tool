@@ -6,7 +6,7 @@ namespace WordPressMigrationTool.Utilities
     public static class HelperUtils
     {
 
-        public static string getKuduApiForZipDownload(string appServiceName)
+        public static string GetKuduApiForZipDownload(string appServiceName)
         {
             if (!string.IsNullOrWhiteSpace(appServiceName))
             {
@@ -15,7 +15,7 @@ namespace WordPressMigrationTool.Utilities
             return null;
         }
 
-        public static string getMySQLConnectionStringForExternalMySQLClientTool(string serverHostName, 
+        public static string GetMySQLConnectionStringForExternalMySQLClientTool(string serverHostName, 
             string username, string password, string databaseName, string charset)
         {
             if (string.IsNullOrWhiteSpace(serverHostName) || string.IsNullOrWhiteSpace(username) 
@@ -34,7 +34,7 @@ namespace WordPressMigrationTool.Utilities
             return mysqlConnectionString;
         }
 
-        public static void parseAndUpdateDatabaseConnectionStringForWinAppService(SiteInfo sourceSite, string databaseConnectionString)
+        public static void ParseAndUpdateDatabaseConnectionStringForWinAppService(SiteInfo sourceSite, string databaseConnectionString)
         {
             string[] splits = databaseConnectionString.Split(';');
 
@@ -60,7 +60,7 @@ namespace WordPressMigrationTool.Utilities
             }
         }
 
-        public static void deleteFileIfExists(string filePath)
+        public static void DeleteFileIfExists(string filePath)
         {
             if (File.Exists(filePath))
             {

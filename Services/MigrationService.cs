@@ -6,18 +6,18 @@ namespace WordPressMigrationTool
     public class MigrationService
     {
 
-        public Result migrate(SiteInfo sourceSite, SiteInfo destinationSite)
+        public Result Migrate(SiteInfo sourceSite, SiteInfo destinationSite)
         {
             ImportService importService = new ImportService();
             ExportService exportService = new ExportService();
 
-            Result exporttRes = exportService.exportDataFromSourceSite(sourceSite);
+            Result exporttRes = exportService.ExportDataFromSourceSite(sourceSite);
             if (exporttRes.status == Status.Failed || exporttRes.status == Status.Cancelled)
             {
                 return exporttRes;
             }
 
-            Result importRes = importService.importDataToDestinationSite(destinationSite, sourceSite.databaseName);
+            Result importRes = importService.ImportDataToDestinationSite(destinationSite, sourceSite.databaseName);
             if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
             {
                 return importRes;

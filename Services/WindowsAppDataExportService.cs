@@ -14,7 +14,7 @@ namespace WordPressMigrationTool
         private string _ftpPassword;
         private string _appServiceName;
         private bool _result = false;
-        private string _message = null;
+        private string _message = "";
         private int _retriesCount = 0;
         private long _lastCheckpointCountForDisplay = 0;
         private readonly SemaphoreSlim _downloadLock = new SemaphoreSlim(0);
@@ -44,9 +44,9 @@ namespace WordPressMigrationTool
             this._ftpPassword = ftpPassword; 
         }
 
-        public Result exportData()
+        public Result ExportData()
         {
-            string appServiceKuduURL = HelperUtils.getKuduApiForZipDownload(this._appServiceName);
+            string appServiceKuduURL = HelperUtils.GetKuduApiForZipDownload(this._appServiceName);
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
 
@@ -62,7 +62,7 @@ namespace WordPressMigrationTool
 
             while (this._retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
             {
-                HelperUtils.deleteFileIfExists(outputFilePath);
+                HelperUtils.DeleteFileIfExists(outputFilePath);
 
                 using (var client = new WebClient())
                 {
@@ -77,7 +77,7 @@ namespace WordPressMigrationTool
                         this._retriesCount++;
                         if (this._retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
                         {
-                            HelperUtils.deleteFileIfExists(outputFilePath);
+                            HelperUtils.DeleteFileIfExists(outputFilePath);
                             return new Result(Status.Failed, this._message);
                         }
                         else

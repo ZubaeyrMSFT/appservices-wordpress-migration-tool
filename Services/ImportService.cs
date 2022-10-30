@@ -7,7 +7,7 @@ namespace WordPressMigrationTool
 {
     public class ImportService
     {
-        public Result importDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
+        public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
             if (string.IsNullOrWhiteSpace(destinationSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -28,9 +28,9 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
 
-            WebSiteResource webAppResource = AzureManagementUtils.getWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
-            IDictionary<string, string> applicationSettings = AzureManagementUtils.getApplicationSettingsForAppService(webAppResource);
-            PublishingUserData publishingProfile = AzureManagementUtils.getPublishingCredentialsForAppService(webAppResource);
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
+            IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
 
             destinationSite.ftpUsername = publishingProfile.PublishingUserName;
             destinationSite.ftpPassword = publishingProfile.PublishingPassword;
@@ -39,32 +39,32 @@ namespace WordPressMigrationTool
             destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
             destinationSite.databaseName = newDatabaseName;
 
-            Result result = importAppServiceData(destinationSite);
+            Result result = ImportAppServiceData(destinationSite);
             if (result.status == Status.Failed || result.status == Status.Cancelled)
             {
                 return result;
             }
 
-            result = importDatbaseContent(destinationSite);
+            result = ImportDatbaseContent(destinationSite);
             if (result.status == Status.Failed || result.status == Status.Cancelled)
             {
                 return result;
             }
 
-            AzureManagementUtils.updateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME, 
+            AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME, 
                 destinationSite.databaseName);
 
             webAppResource.Restart();
             return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
         }
 
-        private Result importAppServiceData(SiteInfo destinationSite)
+        private Result ImportAppServiceData(SiteInfo destinationSite)
         {
             //TODO Needs to be implemented
             return null;
         }
 
-        private Result importDatbaseContent(SiteInfo destinationSite)
+        private Result ImportDatbaseContent(SiteInfo destinationSite)
         {
             //TODO Needs to be implemented
             return null;

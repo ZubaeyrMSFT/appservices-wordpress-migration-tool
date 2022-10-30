@@ -13,7 +13,7 @@ namespace WordPressMigrationTool.Utilities
     public static class AzureManagementUtils
     {
 
-        public static WebSiteResource getWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName)
+        public static WebSiteResource GetWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName)
         {
             ArmClient client = new ArmClient(new DefaultAzureCredential(true));
             if (client == null)
@@ -45,7 +45,7 @@ namespace WordPressMigrationTool.Utilities
             return webSite;
         }
 
-        public static string getDatabaseConnectionString(WebSiteResource webSiteResource)
+        public static string GetDatabaseConnectionString(WebSiteResource webSiteResource)
         {
             Response<ConnectionStringDictionary> connStrDictionary = webSiteResource.GetConnectionStrings();
             if (connStrDictionary == null || connStrDictionary.Value == null || connStrDictionary.Value.Properties == null)
@@ -64,7 +64,7 @@ namespace WordPressMigrationTool.Utilities
             return connStrValue[databaseStringKey].Value;
         }
 
-        public static PublishingUserData getPublishingCredentialsForAppService(WebSiteResource webSiteResource)
+        public static PublishingUserData GetPublishingCredentialsForAppService(WebSiteResource webSiteResource)
         {
             ArmOperation<PublishingUserResource> publishingResource = webSiteResource.GetPublishingCredentials(WaitUntil.Completed);
             if (publishingResource == null || publishingResource.Value == null || publishingResource.Value.Data == null 
@@ -76,7 +76,7 @@ namespace WordPressMigrationTool.Utilities
             return publishingResource.Value.Data;
         }
 
-        public static IDictionary<string, string> getApplicationSettingsForAppService(WebSiteResource webSiteResource)
+        public static IDictionary<string, string> GetApplicationSettingsForAppService(WebSiteResource webSiteResource)
         {
             Response<AppServiceConfigurationDictionary> appSettings = webSiteResource.GetApplicationSettings();
             if (appSettings == null || appSettings.Value == null || appSettings.Value.Properties == null)
@@ -87,7 +87,7 @@ namespace WordPressMigrationTool.Utilities
             return new Dictionary<string, string>(appSettings.Value.Properties);
         }
 
-        public static bool updateApplicationSettingForAppService(WebSiteResource webSiteResource, string appSettingKey, string appSettingValue)
+        public static bool UpdateApplicationSettingForAppService(WebSiteResource webSiteResource, string appSettingKey, string appSettingValue)
         {
             Response<AppServiceConfigurationDictionary> appSettings = webSiteResource.GetApplicationSettings();
             if (appSettings == null || appSettings.Value == null || appSettings.Value.Properties == null)
@@ -102,7 +102,7 @@ namespace WordPressMigrationTool.Utilities
         }
 
 
-        public static bool updateApplicationSettingForAppService(WebSiteResource webSiteResource, IDictionary<string, string> inputAppSettings)
+        public static bool UpdateApplicationSettingForAppService(WebSiteResource webSiteResource, IDictionary<string, string> inputAppSettings)
         {
             Response<AppServiceConfigurationDictionary> appSettings = webSiteResource.GetApplicationSettings();
             if (appSettings == null || appSettings.Value == null || appSettings.Value.Properties == null)
