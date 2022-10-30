@@ -7,7 +7,7 @@ namespace WordPressMigrationTool
 {
     public class ImportService
     {
-        public Result importDataToDestinationSite(SiteInfo sourceSite, SiteInfo destinationSite) {
+        public Result importDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
             if (string.IsNullOrWhiteSpace(destinationSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -23,7 +23,7 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "App Service name should not be empty!");
             }
 
-            if (string.IsNullOrWhiteSpace(sourceSite.databaseName))
+            if (string.IsNullOrWhiteSpace(newDatabaseName))
             {
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
@@ -37,7 +37,7 @@ namespace WordPressMigrationTool
             destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
             destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
             destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
-            destinationSite.databaseName = sourceSite.databaseName; //Database to be exported to Linux Site
+            destinationSite.databaseName = newDatabaseName;
 
             Result result = importAppServiceData(destinationSite);
             if (result.status == Status.Failed || result.status == Status.Cancelled)

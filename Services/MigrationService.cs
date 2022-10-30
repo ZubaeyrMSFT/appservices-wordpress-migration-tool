@@ -17,7 +17,7 @@ namespace WordPressMigrationTool
                 return exporttRes;
             }
 
-            Result importRes = importService.importDataToDestinationSite(destinationSite);
+            Result importRes = importService.importDataToDestinationSite(destinationSite, sourceSite.databaseName);
             if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
             {
                 return importRes;
