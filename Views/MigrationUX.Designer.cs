@@ -350,6 +350,5 @@
         private TextBox linuxSubscriptionIdTextBox;
         private TextBox linuxResourceGroupTextBox;
         private TextBox linuxAppServiceTextBox;
-        private FontDialog fontDialog1;
     }
 }

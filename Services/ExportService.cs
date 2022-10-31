@@ -25,27 +25,43 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "App Service name should not be empty!");
             }
 
-            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(sourceSite.subscriptionId, sourceSite.resourceGroupName, sourceSite.webAppName);
-            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-            string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
-
-            HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(sourceSite, databaseConnectionString);
-            sourceSite.ftpUsername = publishingProfile.PublishingUserName;
-            sourceSite.ftpPassword = publishingProfile.PublishingPassword;
-
-            Result result = ExportAppServiceData(sourceSite);
-            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            try
             {
-                return result;
-            }
+                Console.WriteLine("Retrieving WebApp publishing profile and database details for Windows WordPress... ");
+                Stopwatch timer = Stopwatch.StartNew();
 
-            result = ExportDatbaseContent(sourceSite);
-            if (result.status == Status.Failed || result.status == Status.Cancelled)
+                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(sourceSite.subscriptionId, sourceSite.resourceGroupName, sourceSite.webAppName);
+                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+                string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
+
+                HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(sourceSite, databaseConnectionString);
+                sourceSite.ftpUsername = publishingProfile.PublishingUserName;
+                sourceSite.ftpPassword = publishingProfile.PublishingPassword;
+
+                Console.WriteLine("Successfully retrieved the details... time taken={0} seconds\n",
+                    (timer.ElapsedMilliseconds / 1000));
+                timer.Stop();
+
+
+                Result result = ExportAppServiceData(sourceSite);
+                if (result.status == Status.Failed || result.status == Status.Cancelled)
+                {
+                    return result;
+                }
+
+                result = ExportDatbaseContent(sourceSite);
+                if (result.status == Status.Failed || result.status == Status.Cancelled)
+                {
+                    return result;
+                }
+
+                return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
+
+            } 
+            catch (Exception ex)
             {
-                return result;
+                return new Result(Status.Failed, ex.Message);
             }
-
-            return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
         }
 
         private Result ExportAppServiceData(SiteInfo sourceSite)

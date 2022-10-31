@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WordPressMigrationTool
 {
@@ -18,8 +14,6 @@ namespace WordPressMigrationTool
         public string databasePassword { get; set; }
         public string databaseName { get; set; }
 
-        public SiteInfo() { }
-
         public SiteInfo(string subscriptionId, string resourceGroupName, string webAppName)
         {
             this.subscriptionId = subscriptionId;
@@ -27,8 +21,7 @@ namespace WordPressMigrationTool
             this.webAppName = webAppName;
         }
 
-        override
-        public string ToString()
+        public override string ToString()
         {
             return "[subscriptionId=" + subscriptionId + ", resourceGroupName=" + resourceGroupName + ", webAppName=" + webAppName
                 + "ftpUsername=" + ftpUsername + ", ftpPassword=" + ftpPassword + ", databaseHostName=" + databaseHostname 

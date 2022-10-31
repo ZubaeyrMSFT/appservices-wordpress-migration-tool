@@ -16,7 +16,7 @@ namespace WordPressMigrationTool.Utilities
         }
 
         public static string GetMySQLConnectionStringForExternalMySQLClientTool(string serverHostName, 
-            string username, string password, string databaseName, string charset)
+            string username, string password, string databaseName, string? charset)
         {
             if (string.IsNullOrWhiteSpace(serverHostName) || string.IsNullOrWhiteSpace(username) 
                 || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(databaseName))

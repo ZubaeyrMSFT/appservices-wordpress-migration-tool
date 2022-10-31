@@ -13,7 +13,7 @@ namespace WordPressMigrationTool
         private string _username;
         private string _password;
         private string _databaseName;
-        private string _charset;
+        private string? _charset;
         private bool _result = false;
         private string _message = "";
         private int _retriesCount = 0;
@@ -21,7 +21,7 @@ namespace WordPressMigrationTool
 
 
         public WindowsMySQLDataExportService(string serverHostName, string username, 
-            string password, string databaseName, string charset) {
+            string password, string databaseName, string? charset) {
 
             if (string.IsNullOrWhiteSpace(serverHostName)) 
             {
@@ -62,7 +62,7 @@ namespace WordPressMigrationTool
             string mysqlConnectionString = HelperUtils.GetMySQLConnectionStringForExternalMySQLClientTool(this._serverHostName, this._username, 
                 this._password, this._databaseName, this._charset);
 
-            Console.WriteLine("Exporting MySQL database dump to " + outputZipFilePath);
+            Console.WriteLine("Exporting MySQL database from Windows WordPress to " + outputZipFilePath);
             Stopwatch timer = Stopwatch.StartNew();
 
 
@@ -106,13 +106,15 @@ namespace WordPressMigrationTool
                                 this._retriesCount++;
                                 if (this._retriesCount > Constants.MAX_WIN_MYSQLDATA_RETRIES)
                                 {
+                                    timer.Stop();
+                                    Console.WriteLine("Unable to export MySQL data from Windows WordPress... time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
                                     HelperUtils.DeleteFileIfExists(outputSqlFilePath);
                                     HelperUtils.DeleteFileIfExists(outputZipFilePath);
                                     return new Result(Status.Failed, this._message);
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Retrying MySQL data download... " + _retriesCount);
+                                    Console.WriteLine("Retrying MySQL data download from Windows WordPress... " + _retriesCount);
                                     continue;
                                 }
                             }
@@ -129,7 +131,10 @@ namespace WordPressMigrationTool
                 }
             }
 
-            Console.WriteLine("Sucessfully exported MySQL database dump... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            timer.Stop();
+            Console.WriteLine("Sucessfully exported MySQL database from Windows WordPress..." +
+                "time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
+
             return new Result(Status.Completed, this._message);
         }
 
@@ -164,8 +169,16 @@ namespace WordPressMigrationTool
             if (e.CurrentTableIndex - this._lastCheckpointCountForDisplay >= displayWindowSize)
             {
                 this._lastCheckpointCountForDisplay = e.CurrentTableIndex;
-                Console.WriteLine("Download Progres - Finished exporting " + (e.CurrentTableIndex) 
-                    + " out of " + e.TotalTables + " tables");
+                if (e.CurrentTableIndex == e.TotalTables)
+                {
+                    Console.Write("\rDownload completed - Finished exporting " + (e.CurrentTableIndex)
+                        + " out of " + e.TotalTables + " tables\n");
+                }
+                else
+                {
+                    Console.Write("\rDownload progres - Finished exporting " + (e.CurrentTableIndex)
+                        + " out of " + e.TotalTables + " tables");
+                }
             }
         }
     }
