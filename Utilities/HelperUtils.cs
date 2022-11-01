@@ -67,5 +67,43 @@ namespace WordPressMigrationTool.Utilities
                 File.Delete(filePath);
             }
         }
+
+        public static void WriteOutputWithNewLine(string message, RichTextBox? richTextBox)
+        {
+            if (richTextBox != null)
+            {
+                richTextBox.Invoke(richTextBox.AppendText, message+"\n");                 
+            }
+
+            Console.WriteLine(message);
+        }
+
+        public static void WriteOutput(string message, RichTextBox? richTextBox)
+        {
+            if (richTextBox != null)
+            {
+                richTextBox.Invoke(richTextBox.AppendText, message);
+            }
+
+            Console.Write(message);
+        }
+
+
+        public static void WriteOutputWithRC(string message, RichTextBox? richTextBox)
+        {
+            if (richTextBox != null)
+            {
+                richTextBox.Invoke(new Action(() =>
+                {
+                    string currText = richTextBox.Text;
+                    richTextBox.Select(currText.LastIndexOf("\n")+1, (currText.Length - currText.LastIndexOf("\n") + 1));
+                    richTextBox.Cut();
+                    richTextBox.AppendText(message);
+                }));
+
+            }
+
+            Console.Write("\r" + message);
+        }
     }
 }

@@ -8,6 +8,15 @@ namespace WordPressMigrationTool
 {
     public class ImportService
     {
+        private RichTextBox? _progressViewRTextBox;
+
+        public ImportService() { }
+
+        public ImportService(RichTextBox? progressViewRTextBox)
+        {
+            this._progressViewRTextBox = progressViewRTextBox;
+        }
+
         public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
             if (string.IsNullOrWhiteSpace(destinationSite.subscriptionId))
             {
@@ -31,7 +40,8 @@ namespace WordPressMigrationTool
 
             try
             {
-                Console.WriteLine("Retrieving WebApp publishing profile and database details for Linux WordPress... ");
+                HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database " +
+                    "details for Linux WordPress... ", this._progressViewRTextBox);
                 Stopwatch timer = Stopwatch.StartNew();
 
                 WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
@@ -45,8 +55,8 @@ namespace WordPressMigrationTool
                 destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
                 destinationSite.databaseName = newDatabaseName;
 
-                Console.WriteLine("Successfully retrieved the details... time taken={0} seconds\n",
-                    (timer.ElapsedMilliseconds / 1000));
+                HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken=" 
+                    + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
                 timer.Stop();
 
 

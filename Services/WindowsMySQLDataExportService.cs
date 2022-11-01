@@ -18,10 +18,11 @@ namespace WordPressMigrationTool
         private string _message = "";
         private int _retriesCount = 0;
         private long _lastCheckpointCountForDisplay = 0;
+        private RichTextBox? _progressViewRTextBox;
 
 
         public WindowsMySQLDataExportService(string serverHostName, string username, 
-            string password, string databaseName, string? charset) {
+            string password, string databaseName, string? charset, RichTextBox? progressViewRTextBox) {
 
             if (string.IsNullOrWhiteSpace(serverHostName)) 
             {
@@ -52,6 +53,7 @@ namespace WordPressMigrationTool
             this._password = password;
             this._databaseName = databaseName;
             this._charset = charset;
+            this._progressViewRTextBox = progressViewRTextBox;
         }
 
         public Result ExportData()
@@ -62,7 +64,7 @@ namespace WordPressMigrationTool
             string mysqlConnectionString = HelperUtils.GetMySQLConnectionStringForExternalMySQLClientTool(this._serverHostName, this._username, 
                 this._password, this._databaseName, this._charset);
 
-            Console.WriteLine("Exporting MySQL database from Windows WordPress to " + outputZipFilePath);
+            HelperUtils.WriteOutputWithNewLine("Exporting MySQL database from Windows WordPress to " + outputZipFilePath, this._progressViewRTextBox);
             Stopwatch timer = Stopwatch.StartNew();
 
 
@@ -107,14 +109,16 @@ namespace WordPressMigrationTool
                                 if (this._retriesCount > Constants.MAX_WIN_MYSQLDATA_RETRIES)
                                 {
                                     timer.Stop();
-                                    Console.WriteLine("Unable to export MySQL data from Windows WordPress... time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
+                                    HelperUtils.WriteOutputWithNewLine("Unable to export MySQL data from Windows WordPress... time taken= " 
+                                        + (timer.ElapsedMilliseconds / 1000)  + " seconds\n", this._progressViewRTextBox);
                                     HelperUtils.DeleteFileIfExists(outputSqlFilePath);
                                     HelperUtils.DeleteFileIfExists(outputZipFilePath);
                                     return new Result(Status.Failed, this._message);
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Retrying MySQL data download from Windows WordPress... " + _retriesCount);
+                                    HelperUtils.WriteOutputWithNewLine("Retrying MySQL data download from Windows " +
+                                        "WordPress... " + _retriesCount, this._progressViewRTextBox);
                                     continue;
                                 }
                             }
@@ -132,8 +136,8 @@ namespace WordPressMigrationTool
             }
 
             timer.Stop();
-            Console.WriteLine("Sucessfully exported MySQL database from Windows WordPress..." +
-                "time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
+            HelperUtils.WriteOutputWithNewLine("Sucessfully exported MySQL database from Windows WordPress..." +
+                "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
 
             return new Result(Status.Completed, this._message);
         }
@@ -171,13 +175,15 @@ namespace WordPressMigrationTool
                 this._lastCheckpointCountForDisplay = e.CurrentTableIndex;
                 if (e.CurrentTableIndex == e.TotalTables)
                 {
-                    Console.Write("\rDownload completed - Finished exporting " + (e.CurrentTableIndex)
-                        + " out of " + e.TotalTables + " tables\n");
+                    string outputString = "Download completed - Finished exporting " 
+                        + (e.CurrentTableIndex) + " out of " + e.TotalTables + " tables\n";
+                    HelperUtils.WriteOutputWithRC(outputString, this._progressViewRTextBox);
                 }
                 else
                 {
-                    Console.Write("\rDownload progres - Finished exporting " + (e.CurrentTableIndex)
-                        + " out of " + e.TotalTables + " tables");
+                    string outputString = "Download progres - Finished exporting " 
+                        + (e.CurrentTableIndex) + " out of " + e.TotalTables + " tables";
+                    HelperUtils.WriteOutputWithRC(outputString, this._progressViewRTextBox);
                 }
             }
         }
