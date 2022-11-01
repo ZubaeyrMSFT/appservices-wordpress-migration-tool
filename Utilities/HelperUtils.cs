@@ -15,6 +15,24 @@ namespace WordPressMigrationTool.Utilities
             return null;
         }
 
+        public static string getKuduUrlForZipUpload(string appServiceName, string uploadPath)
+        {
+            if (!string.IsNullOrWhiteSpace(appServiceName))
+            {
+                return "https://" + appServiceName + ".scm.azurewebsites.net/api/zip/" + uploadPath;
+            }
+            return null;
+        }
+
+        public static string getKuduUrlForCommandExec(string appServiceName)
+        {
+            if (!string.IsNullOrWhiteSpace(appServiceName))
+            {
+                return "https://" + appServiceName + ".scm.azurewebsites.net/api/command";
+            }
+            return null;
+        }
+
         public static string getMySQLConnectionStringForExternalMySQLClientTool(string serverHostName, 
             string username, string password, string databaseName, string charset)
         {
@@ -66,6 +84,44 @@ namespace WordPressMigrationTool.Utilities
             {
                 File.Delete(filePath);
             }
+        }
+
+        public KuduCommandApiResult executeKuduCommandApi(string command, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3) {
+            var appServiceKuduCommandURL = getKuduUrlForCommandExec(appServiceName);
+            int trycount=1;
+            while(trycount <= maxRetryCount)
+            {
+                using (var client = new HttpClient())
+                {
+                    var byteArray = Encoding.ASCII.GetBytes(ftpUserName + ":" + ftpPassword);
+                    var jsonString = JsonConvert.SerializeObject(new { command = command, dir = "" });
+
+                    HttpContent httpContent = new StringContent(jsonString);
+                    httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue ("application/json");
+
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                    HttpResponseMessage response = await client.PostAsync(appServiceKuduCommandURL, httpContent);
+
+                    if (response.isSuccessStatusCode)
+                    {
+                        var response = await ReadFromJsonAsync(response.content, KuduCommandApiResponse);
+                        return new KuduCommandApiResult(Status.Completed, response.Output, response.Error, response.ExistCode);
+                    }
+
+                    trycount++;
+                    if (trycount > Constants.MAX_APPDATA_UPLOAD_RETRIES)
+                    {
+                        return new KuduCommandApiResult(Status.Failed);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Retrying to create placeholder directory for MySQL dump... " + this._retriesCount);
+                        continue;
+                    }
+                }
+            }
+            return new KuduCommandApiResult(Status.Failed);
         }
     }
 }

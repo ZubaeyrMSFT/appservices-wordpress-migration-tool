@@ -39,13 +39,19 @@ namespace WordPressMigrationTool
             destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
             destinationSite.databaseName = newDatabaseName;
 
+            Result result = splitWpContentZip(destinationSite);
+            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            {
+                return result;
+            }
+
             Result result = importAppServiceData(destinationSite);
             if (result.status == Status.Failed || result.status == Status.Cancelled)
             {
                 return result;
             }
 
-            result = importDatbaseContent(destinationSite);
+            result = importDatabaseContent(destinationSite);
             if (result.status == Status.Failed || result.status == Status.Cancelled)
             {
                 return result;
@@ -60,14 +66,43 @@ namespace WordPressMigrationTool
 
         private Result importAppServiceData(SiteInfo destinationSite)
         {
-            //TODO Needs to be implemented
-            return null;
+            LinuxAppServiceImportService linAppImportService = new LinuxAppServiceImportService(destinationSite.webAppName,
+                destinationSite.ftpUsername, destinationSite.ftpPassword);
+            return linAppImportService.importData();
         }
 
-        private Result importDatbaseContent(SiteInfo destinationSite)
+        private Result importDatabaseContent(SiteInfo destinationSite)
         {
-            //TODO Needs to be implemented
-            return null;
+            WindowsMySQLDataExportService linDBImportService = new WindowsMySQLDataExportService(destinationSite.databaseHostname,
+                destinationSite.databaseUsername, destinationSite.databasePassword, destinationSite.databaseName, null, destinationSite.webAppName,
+                destinationSite.ftpUsername, destinationSite.ftpPassword);
+            
+            return linDBImportService.importData();
+        }
+
+        private Result splitWpContentZip(SiteInfo destinationSite)
+        {
+            string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
+            string splitZipFilesDirectory = Constants.SPLIT_ZIP_FILES_DIR;
+            if (!Directory.Exists(splitZipFilesDirectory))
+            {
+                Directory.CreateDirectory(splitZipFilesDirectory);
+            }
+            try 
+            {
+                using (var zipFile = new Ionic.Zip.ZipFile(Encoding.UTF8))
+                {
+                    zipFile.AddDirectory(appContentFilePath, directoryPathInArchive: string.Empty);
+                    zipFile.MaxOutputSegmentSize = 100 * 1000000;
+                    zipFile.Save(splitZipFilesDirectory + "test.zip");
+                }
+                return Result(Status.Completed, "Zip file split successful...");
+            }
+            catch (Exception e)
+            {
+                return Result(Status.Failed, "Couldn't split zip file...");
+            }
+           
         }
     }
 }
