@@ -1,13 +1,17 @@
 ﻿using Azure.ResourceManager.AppService;
 using System;
+using System.IO;
+using System.Text;
 using System.Collections.Generic;
 using WordPressMigrationTool.Utilities;
+using System.Threading.Tasks;
+using Ionic.Zip;
 
 namespace WordPressMigrationTool
 {
     public class ImportService
     {
-        public Result importDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
+        public async Task<Result> importDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
             if (string.IsNullOrWhiteSpace(destinationSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -45,16 +49,16 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            Result result = importAppServiceData(destinationSite);
-            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            Result importAppServiceDataResult = await importAppServiceData(destinationSite);
+            if (importAppServiceDataResult.status == Status.Failed || importAppServiceDataResult.status == Status.Cancelled)
             {
-                return result;
+                return importAppServiceDataResult;
             }
 
-            result = importDatabaseContent(destinationSite);
-            if (result.status == Status.Failed || result.status == Status.Cancelled)
+            Result importDatabaseContentResult = await importDatabaseContent(destinationSite);
+            if (importDatabaseContentResult.status == Status.Failed || importDatabaseContentResult.status == Status.Cancelled)
             {
-                return result;
+                return importDatabaseContentResult;
             }
 
             AzureManagementUtils.updateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME, 
@@ -64,20 +68,20 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
         }
 
-        private Result importAppServiceData(SiteInfo destinationSite)
+        private async Task<Result> importAppServiceData(SiteInfo destinationSite)
         {
-            LinuxAppServiceImportService linAppImportService = new LinuxAppServiceImportService(destinationSite.webAppName,
+            LinuxAppDataImportService linAppImportService = new LinuxAppDataImportService(destinationSite.webAppName,
                 destinationSite.ftpUsername, destinationSite.ftpPassword);
-            return linAppImportService.importData();
+            return await linAppImportService.importData();
         }
 
-        private Result importDatabaseContent(SiteInfo destinationSite)
+        private async Task<Result> importDatabaseContent(SiteInfo destinationSite)
         {
-            WindowsMySQLDataExportService linDBImportService = new WindowsMySQLDataExportService(destinationSite.databaseHostname,
+            LinuxMySQLDataImportService linDBImportService = new LinuxMySQLDataImportService(destinationSite.databaseHostname,
                 destinationSite.databaseUsername, destinationSite.databasePassword, destinationSite.databaseName, null, destinationSite.webAppName,
                 destinationSite.ftpUsername, destinationSite.ftpPassword);
             
-            return linDBImportService.importData();
+            return await linDBImportService.importData();
         }
 
         private Result splitWpContentZip(SiteInfo destinationSite)
@@ -96,13 +100,12 @@ namespace WordPressMigrationTool
                     zipFile.MaxOutputSegmentSize = 100 * 1000000;
                     zipFile.Save(splitZipFilesDirectory + "test.zip");
                 }
-                return Result(Status.Completed, "Zip file split successful...");
+                return new Result(Status.Completed, "Zip file split successful...");
             }
-            catch (Exception e)
+            catch
             {
-                return Result(Status.Failed, "Couldn't split zip file...");
+                return new Result(Status.Failed, "Couldn't split zip file...");
             }
-           
         }
     }
 }

@@ -1,5 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace WordPressMigrationTool.Utilities
 {
@@ -86,14 +90,14 @@ namespace WordPressMigrationTool.Utilities
             }
         }
 
-        public KuduCommandApiResult executeKuduCommandApi(string command, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3) {
+        public static async Task<KuduCommandApiResult> executeKuduCommandApi(string command, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3) {
             var appServiceKuduCommandURL = getKuduUrlForCommandExec(appServiceName);
             int trycount=1;
             while(trycount <= maxRetryCount)
             {
                 using (var client = new HttpClient())
                 {
-                    var byteArray = Encoding.ASCII.GetBytes(ftpUserName + ":" + ftpPassword);
+                    var byteArray = Encoding.ASCII.GetBytes(ftpUsername + ":" + ftpPassword);
                     var jsonString = JsonConvert.SerializeObject(new { command = command, dir = "" });
 
                     HttpContent httpContent = new StringContent(jsonString);
@@ -103,10 +107,11 @@ namespace WordPressMigrationTool.Utilities
 
                     HttpResponseMessage response = await client.PostAsync(appServiceKuduCommandURL, httpContent);
 
-                    if (response.isSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
                     {
-                        var response = await ReadFromJsonAsync(response.content, KuduCommandApiResponse);
-                        return new KuduCommandApiResult(Status.Completed, response.Output, response.Error, response.ExistCode);
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        var responseOutput = JsonConvert.DeserializeObject<KuduCommandApiResponse>(responseContent);
+                        return new KuduCommandApiResult(Status.Completed, responseOutput.Output, responseOutput.Error, responseOutput.ExitCode);
                     }
 
                     trycount++;
@@ -116,7 +121,7 @@ namespace WordPressMigrationTool.Utilities
                     }
                     else
                     {
-                        Console.WriteLine("Retrying to create placeholder directory for MySQL dump... " + this._retriesCount);
+                        Console.WriteLine("Retrying to create placeholder directory for MySQL dump... ");
                         continue;
                     }
                 }

@@ -27,6 +27,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -71,6 +72,9 @@
     </Reference>
     <Reference Include="Devart.Data.MySql, Version=9.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
       <HintPath>packages\dotConnect.Express.for.MySQL.9.0.0\lib\Devart.Data.MySql.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetZip, Version=1.16.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>packages\DotNetZip.1.16.0\lib\net40\DotNetZip.dll</HintPath>
     </Reference>
     <Reference Include="Google.Protobuf, Version=3.19.4.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>packages\Google.Protobuf.3.19.4\lib\net45\Google.Protobuf.dll</HintPath>
@@ -228,6 +232,8 @@
     <Compile Include="Models\SiteInfo.cs" />
     <Compile Include="Services\WindowsMySQLDataExportService.cs" />
     <Compile Include="Services\WindowsAppDataExportService.cs" />
+    <Compile Include="Services\LinuxMySQLDataImportService.cs" />
+    <Compile Include="Services\LinuxAppDataImportService.cs" />
     <Compile Include="Services\ExportService.cs" />
     <Compile Include="Services\ImportService.cs" />
     <Compile Include="StartUp.cs" />
@@ -250,6 +256,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="Views\MigrationUX.resx">
       <DependentUpon>MigrationUX.cs</DependentUpon>

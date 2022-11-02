@@ -4,10 +4,15 @@ using WordPressMigrationTool.Utilities;
 using MySql.Data.MySqlClient;
 using System.IO.Compression;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace WordPressMigrationTool
 {
-    public class WindowsMySQLDataExportService
+    public class LinuxMySQLDataImportService
     {
         private string _ftpUserName;
         private string _ftpPassword;
@@ -17,13 +22,7 @@ namespace WordPressMigrationTool
         private string _password;
         private string _databaseName;
         private string _charset;
-        private bool _result = false;
-        private string _message = null;
         private int _retriesCount = 0;
-        private bool _databasePlaceholderDirectoryCreated = false;
-        private bool _databaseZipFileUploaded = false;
-        private bool _mySqlDatabaseImportedOnServer = false;
-        private long _lastCheckpointCountForDisplay = 0;
 
 
         public LinuxMySQLDataImportService(string serverHostName, string username,
@@ -83,7 +82,7 @@ namespace WordPressMigrationTool
             this._ftpPassword = ftpPassword;
         }
 
-        public Result importData()
+        public async Task<Result> importData()
         {
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputSqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH);
@@ -91,38 +90,41 @@ namespace WordPressMigrationTool
             //Console.WriteLine("Exporting MySQL database dump to " + outputZipFilePath);
             Stopwatch timer = Stopwatch.StartNew();
 
-            if (!this._createMySqlDumpPlaceholderDirectory())
+            bool createMySqlDirectoryResult = await this._createMySqlDumpPlaceholderDirectory();
+            if (createMySqlDirectoryResult)
             {
                 return new Result(Status.Failed, "Could not create placeholder directory in destination app service for MySQL dump...");
             }
 
-            Result mysqlDumpUploadResult = this._uploadMySqlDump();
+            Result mysqlDumpUploadResult = await this._uploadMySqlDump();
             if (mysqlDumpUploadResult.status != Status.Completed)
             {
-                return mysqDumpUploadResult;
+                return mysqlDumpUploadResult;
             }
 
-            KuduCommandApiResult installMysqlPackageOnLinuxSiteResult = HelperUtils.executeKuduCommandApi(Constants.MYSQL_PACKAGE_INSTALL, this._ftpUserName, this._ftpPassword, 3);
+            KuduCommandApiResult installMysqlPackageOnLinuxSiteResult = await HelperUtils.executeKuduCommandApi(Constants.MYSQL_PACKAGE_INSTALL, this._ftpUserName, this._appServiceName, this._ftpPassword, 3);
             if (installMysqlPackageOnLinuxSiteResult.status != Status.Completed)
             {
                 return new Result(installMysqlPackageOnLinuxSiteResult.status, "Could not install mysql-client package on destination site...");
             }
 
-            string mysqlImportCommand = Constants.MYSQL_DUMP_IMPORT.format(this._username, this._password, this._serverHostName, this._databaseName, this.databaseName)
-            KuduCommandApiResult importMysqlDumpResult = HelperUtils.executeKuduCommandApi(Constants.MYSQL_PACKAGE_INSTALL, this._ftpUserName, this._ftpPassword, 3);
+            string mysqlImportCommand = String.Format(Constants.MYSQL_DUMP_IMPORT , this._username, this._password, this._serverHostName, this._databaseName, this._databaseName);
+            KuduCommandApiResult importMysqlDumpResult = await HelperUtils.executeKuduCommandApi(Constants.MYSQL_PACKAGE_INSTALL, this._ftpUserName, this._appServiceName, this._ftpPassword, 3);
             if (importMysqlDumpResult.status != Status.Completed)
             {
                 return new Result(importMysqlDumpResult.status, "Could not import MySQL dump...");
             }
 
-            return Result(Status.Completed, "MySQL Database import completed...");
+            return new Result(Status.Completed, "MySQL Database import completed...");
         }
 
-        private Result _uploadMySqlDump()
+        private async Task<Result> _uploadMySqlDump()
         {
+            string uploadMySqlDumpKuduUrl = HelperUtils.getKuduUrlForZipUpload(this._appServiceName, Constants.LIN_MYSQL_DUMP_UPLOAD_PATH_FOR_KUDU_API);
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputSqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH);
             string mySqlZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
+            string mySqlZipFileName = Constants.WIN_MYSQL_ZIP_FILENAME;
 
             if (!File.Exists(mySqlZipFilePath))
             {
@@ -131,28 +133,29 @@ namespace WordPressMigrationTool
 
             while (this._retriesCount <= Constants.MAX_APPDATA_UPLOAD_RETRIES)
             {
-                using (var client = new HttpClient())
+                using (HttpClient client = new HttpClient())
                 {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    
+                    MultipartFormDataContent content = new MultipartFormDataContent();
+                    ByteArrayContent fileContent = new ByteArrayContent(System.IO.File.ReadAllBytes(mySqlZipFilePath));
+
+                    content.Add(fileContent, "file", mySqlZipFileName);
+
                     var byteArray = Encoding.ASCII.GetBytes(this._ftpUserName + ":" + this._ftpPassword);
-                    var jsonString = JsonConvert.SerializeObject(new { data-binary = mySqlZipFilePath });
-
-                    HttpContent httpContent = new StringContent(jsonString);
-                    httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue ("application/json");
-
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    HttpResponseMessage response = await client.PutAsync(appServiceKuduURL, httpContent);
+                    var response = await client.PutAsync(uploadMySqlDumpKuduUrl, content);
 
-                    if (response.isSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
                     {
-                         HelperUtils.deleteFileIfExists(mySqlZipFilePath);
                         break;
                     }
 
                     this._retriesCount++;
                     if (this._retriesCount > Constants.MAX_APPDATA_UPLOAD_RETRIES)
                     {
-                        HelperUtils.deleteFileIfExists(mySqlZipFilePath);
                         return new Result(Status.Failed, "MySQL dump upload failed...");
                     }
                     else
@@ -163,19 +166,20 @@ namespace WordPressMigrationTool
                 }
             }
 
-            Console.WriteLine("Sucessfully uploaded MySQL dump to App Service... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            //Console.WriteLine("Sucessfully uploaded MySQL dump to App Service... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
             return new Result(Status.Completed, "Successfully uploaded MySQL dump.");
         }
 
-        private bool _createMySqlDumpPlaceholderDirectory()
+        private async Task<bool> _createMySqlDumpPlaceholderDirectory()
         {
+            string appServiceKuduCommandURL = HelperUtils.getKuduUrlForCommandExec(this._appServiceName);
             int trycount=1;
             while(trycount <= Constants.MAX_RETRIES_COMMON)
             {
                  using (var client = new HttpClient())
                 {
                     var byteArray = Encoding.ASCII.GetBytes(this._ftpUserName + ":" + this._ftpPassword);
-                    var jsonString = JsonConvert.SerializeObject(new { command = Constants.MYSQL_CREATE_TEMP_DIR, dir = "" });
+                    var jsonString = JsonConvert.SerializeObject(new { command = Constants.MYSQL_CREATE_TEMP_DIR_COMMAND, dir = "" });
 
                     HttpContent httpContent = new StringContent(jsonString);
                     httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue ("application/json");
@@ -184,25 +188,14 @@ namespace WordPressMigrationTool
 
                     HttpResponseMessage response = await client.PostAsync(appServiceKuduCommandURL, httpContent);
 
-                    if (response.isSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
                     {
-                         HelperUtils.deleteFileIfExists(mySqlZipFilePath);
-                        break;
+                        return true;
                     }
-
                     trycount++;
-                    if (trycount > Constants.MAX_APPDATA_UPLOAD_RETRIES)
-                    {
-                        HelperUtils.deleteFileIfExists(mySqlZipFilePath);
-                        return new Result(Status.Failed, "Could not create placeholder directory for MySQL dump...");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Retrying to create placeholder directory for MySQL dump... " + this._retriesCount);
-                        continue;
-                    }
                 }
             }
+            return false;
         }
     }
 }

@@ -4,22 +4,23 @@ using System.Threading;
 using System.IO;
 using WordPressMigrationTool.Utilities;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace WordPressMigrationTool
 {
-    public class WindowsAppDataExportService
+    public class LinuxAppDataImportService
     {
 
         private string _ftpUserName;
         private string _ftpPassword;
         private string _appServiceName;
-        private string _message = null;
         private int _retriesCount = 0;
-        private long _lastCheckpointCountForDisplay = 0;
-        private readonly SemaphoreSlim _downloadLock = new SemaphoreSlim(0);
 
 
-        public LinuxAppDataExportService(string appServiceName, string ftpUserName, string ftpPassword)
+        public LinuxAppDataImportService(string appServiceName, string ftpUserName, string ftpPassword)
         {
             if (string.IsNullOrWhiteSpace(appServiceName))
             {
@@ -44,16 +45,17 @@ namespace WordPressMigrationTool
             this._ftpPassword = ftpPassword;
         }
 
-        public Result importData()
+        public async Task<Result> importData()
         {
-            string appServiceKuduURL = HelperUtils.getKuduUrlForZipUpload(this._appServiceName, "site/wwwroot/wp-content");
+            string uploadWpContentKuduUrl = HelperUtils.getKuduUrlForZipUpload(this._appServiceName, "site/wwwroot/wp-content");
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
+            string appContentFIleName = Constants.WIN_WPCONTENT_ZIP_FILENAME;
 
             Console.WriteLine("Exporting App Service data to " + appContentFilePath);
             Stopwatch timer = Stopwatch.StartNew();
 
-            if (!clearWpContentInDestinationApp)
+            if (! await clearWpContentInDestinationApp())
             {
                 return new Result(Status.Failed, "Could not clear wp-content directory in App Service");
             }
@@ -68,17 +70,20 @@ namespace WordPressMigrationTool
             {
                 using (var client = new HttpClient())
                 {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    MultipartFormDataContent content = new MultipartFormDataContent();
+                    ByteArrayContent fileContent = new ByteArrayContent(System.IO.File.ReadAllBytes(appContentFilePath));
+
+                    content.Add(fileContent, "file", appContentFIleName);
+
                     var byteArray = Encoding.ASCII.GetBytes(this._ftpUserName + ":" + this._ftpPassword);
-                    var jsonString = JsonConvert.SerializeObject(new { data-binary = appContentFilePath });
-
-                    HttpContent httpContent = new StringContent(jsonString);
-                    httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue ("application/json");
-
                     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-                    HttpResponseMessage response = await client.PutAsync(appServiceKuduURL, httpContent);
+                    HttpResponseMessage response = await client.PutAsync(uploadWpContentKuduUrl, content);
 
-                    if (response.isSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
                     {
                         File.Delete(appContentFilePath);
                         break;
@@ -102,42 +107,14 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "Successfully uploaded App Service data.");
         }
 
-        private bool clearWpContentInDestinationApp()
+        private async Task<bool> clearWpContentInDestinationApp()
         {
-            int trycount=1;
-            while(trycount <= Constants.MAX_WPCONTENT_CLEAR_RETRIES)
+            KuduCommandApiResult installMysqlPackageOnLinuxSiteResult = await HelperUtils.executeKuduCommandApi(Constants.MYSQL_CLEAN_WPCONTENT_DIR_COMMAND, this._ftpUserName, this._appServiceName, this._ftpPassword, 3);
+            if (installMysqlPackageOnLinuxSiteResult.status != Status.Completed)
             {
-                 using (var client = new HttpClient())
-                {
-                    var byteArray = Encoding.ASCII.GetBytes(this._ftpUserName + ":" + this._ftpPassword);
-                    var jsonString = JsonConvert.SerializeObject(new { command = Constants.MYSQL_CLEAN_WPCONTENT_DIR_COMMAND, dir = "" });
-
-                    HttpContent httpContent = new StringContent(jsonString);
-                    httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue ("application/json");
-
-                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                    HttpResponseMessage response = await client.PostAsync(appServiceKuduCommandURL, httpContent);
-
-                    if (response.isSuccessStatusCode)
-                    {
-                        return true;
-                    }
-
-                    trycount++;
-                    if (trycount > Constants.MAX_APPDATA_UPLOAD_RETRIES)
-                    {
-                        HelperUtils.deleteFileIfExists(mySqlZipFilePath);
-                        return false;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Retrying to create placeholder directory for MySQL dump... " + this._retriesCount);
-                        continue;
-                    }
-                }
+                return false;
             }
-            return false;
+            return true;
         }
     }
 }
