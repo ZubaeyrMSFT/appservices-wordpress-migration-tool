@@ -1,12 +1,13 @@
 ﻿using System;
 using WordPressMigrationTool.Utilities;
+using System.Threading.Tasks;
 
 namespace WordPressMigrationTool
 {
     public class MigrationService
     {
 
-        public Result Migrate(SiteInfo sourceSite, SiteInfo destinationSite)
+         public Result migrate(SiteInfo sourceSite, SiteInfo destinationSite)
         {
             try
             {
@@ -19,7 +20,7 @@ namespace WordPressMigrationTool
                     return exporttRes;
                 }
 
-                Result importRes = importService.ImportDataToDestinationSite(destinationSite, sourceSite.databaseName);
+                Result importRes = importService.importDataToDestinationSite(destinationSite, sourceSite.databaseName);
                 if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
                 {
                     return importRes;
