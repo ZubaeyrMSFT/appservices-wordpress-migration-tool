@@ -96,7 +96,7 @@ namespace WordPressMigrationTool
                 Directory.Delete(splitZipFilesDirectory, true);
             }
 
-            string zippedSplitZipFIlesDirectory = Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR;
+            string zippedSplitZipFIlesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR);
             if (Directory.Exists(zippedSplitZipFIlesDirectory))
             {
                 Directory.Delete(zippedSplitZipFIlesDirectory, true);

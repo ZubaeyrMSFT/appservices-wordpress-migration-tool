@@ -36,7 +36,7 @@ namespace WordPressMigrationTool
 
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
-            /*
+            
             try
             {
                 Result result =  new MigrationService().migrate(sourceSiteInfo, destinationSiteInfo);
@@ -53,7 +53,7 @@ namespace WordPressMigrationTool
                 {
                     return;
                 }
-            }*/
+            }
         }
     }
 }

@@ -68,19 +68,10 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            this._splitZipFilesArr = Directory.GetFiles(Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR));
-            if (this._splitZipFilesArr.Length == 0)
+            Result uploadSplitZipFilesResult = this._uploadSplitZipFiles();
+            if (uploadSplitZipFilesResult.status != Status.Completed)
             {
-                return new Result(Status.Failed, "App Service data not found at " + appContentFilePath);
-            }
-
-            for (int splitInd = 0; splitInd < this._splitZipFilesArr.Length; splitInd++)
-            {
-                string splitZipFileName = Path.GetFileName(this._splitZipFilesArr[splitInd]);
-                if (!this._uploadSplitZipFileToAppService(splitZipFileName))
-                {
-                    return new Result(Status.Failed, "Could not upload wp-content to app service");
-                }
+                return uploadSplitZipFilesResult;
             }
 
             // merges split zip files and extracts to wp-content directory in app service
@@ -91,6 +82,26 @@ namespace WordPressMigrationTool
 
             //Console.WriteLine("Sucessfully uploaded App Service data... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
             return new Result(Status.Completed, "Successfully uploaded App Service data.");
+        }
+
+        private Result _uploadSplitZipFiles()
+        {
+            string appContentSplitZipDir = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
+            this._splitZipFilesArr = Directory.GetFiles(appContentSplitZipDir);
+            if (this._splitZipFilesArr.Length == 0)
+            {
+                return new Result(Status.Failed, "App Service split zip data not found at " + appContentSplitZipDir);
+            }
+
+            for (int splitInd = 0; splitInd < this._splitZipFilesArr.Length; splitInd++)
+            {
+                string splitZipFileName = Path.GetFileName(this._splitZipFilesArr[splitInd]);
+                if (!this._uploadSplitZipFileToAppService(splitZipFileName))
+                {
+                    return new Result(Status.Failed, "Could not upload " + splitZipFileName + " to destination app");
+                }
+            }
+            return new Result(Status.Completed, "WP-Content split zip file upload successful..");
         }
 
         private bool _uploadSplitZipFileToAppService(string splitZipFileName)
@@ -125,6 +136,13 @@ namespace WordPressMigrationTool
                 return false;
             }
 
+            // Clean split zip files in app service once merged
+            string linAppSplitZipFilesDir = Constants.WPCONTENT_TEMP_DIR;
+            if (!HelperUtils.ClearAppServiceDirectory(linAppSplitZipFilesDir, this._ftpUserName, this._ftpPassword, this._appServiceName))
+            {
+                return false;
+            }
+
             string unzipMergedSplitFileCommand = Constants.UNZIP_MERGED_WPCONTENT_COMMAND;
             KuduCommandApiResult unzipMergedSplitFileResult = HelperUtils.executeKuduCommandApi(unzipMergedSplitFileCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
             if (unzipMergedSplitFileResult.status != Status.Completed)
@@ -141,7 +159,6 @@ namespace WordPressMigrationTool
             string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
             string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILE_PATH);
 
-            //needs testing
             if (Directory.Exists(splitZipFilesDirectory))
             {
                 Directory.Delete(splitZipFilesDirectory, true);
