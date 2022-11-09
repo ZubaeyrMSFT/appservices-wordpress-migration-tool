@@ -24,6 +24,7 @@ namespace WordPressMigrationTool
         private string _password;
         private string _databaseName;
         private int _retriesCount = 0;
+        public string _message = "";
 
 
         public LinuxMySQLDataImportService(WebSiteResource destinationSiteResource, string serverHostName, string username,
@@ -89,39 +90,41 @@ namespace WordPressMigrationTool
 
         public Result importData()
         {
-            string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
-            string outputSqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH);
-            string mySqlZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
-
+            this._message = "Importing MySQL database dump.";
             Stopwatch timer = Stopwatch.StartNew();
 
+            this._message = "Clearing MySQL dump directory in destination app.";
             if (!_setupMySqlDumpPlaceholderDirectory())
             {
                 return new Result(Status.Failed, "Could not setup placeholder directory in destination app service for MySQL dump...");
             }
 
+            this._message = "Uploading MySQL dump to destination app.";
             Result mysqlDumpUploadResult = this._uploadMySqlDump();
             if (mysqlDumpUploadResult.status != Status.Completed)
             {
                 return mysqlDumpUploadResult;
             }
 
+            this._message = "Updating app settings to trigger MySQL import.";
             if (!this._startDatabaseImportInAppContainer())
             {
                 return new Result(Status.Failed, "Could not initiate MySQL Database import in Destination App Service...");
             }
 
-
+            this._message = "Importing MySQL database to destination server.";
             if (!this._waitForDBImportInAppService())
             {
                 return new Result(Status.Failed, "Could not verify MySQL Database import completed in Destination App Service...");
             }
 
+            this._message = "Removing app settings to prevent future MySQL import triggers.";
             if (!this._stopDatabaseImportInAppContainer())
             {
                 return new Result(Status.Failed, "Could not remove App Settings that trigger MySQL Database import in Destination App Service...");
             }
 
+            this._message = String.Format("MySQL DB import successful. Time taken = (0) seconds", timer.ElapsedMilliseconds / 1000);
             return new Result(Status.Completed, "MySQL Database import completed...");
         }
 

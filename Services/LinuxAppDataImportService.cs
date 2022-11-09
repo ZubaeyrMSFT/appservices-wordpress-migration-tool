@@ -18,6 +18,7 @@ namespace WordPressMigrationTool
         private string _ftpPassword;
         private string _appServiceName;
         private string[] _splitZipFilesArr;
+        public string _message;
         private int _retriesCount = 0;
         private readonly SemaphoreSlim _binaryLock = new SemaphoreSlim(0);
 
@@ -54,7 +55,9 @@ namespace WordPressMigrationTool
             string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
             string appContentFileName = Constants.WIN_WPCONTENT_ZIP_FILENAME;
 
-            Console.WriteLine("Exporting App Service data to " + appContentFilePath);
+            this._message = "Exporting App data...";
+
+            Console.WriteLine("Exporting App Service data...");
             Stopwatch timer = Stopwatch.StartNew();
 
             if (!HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_WPCONTENT_DIR, this._ftpUserName, this._ftpPassword, this._appServiceName))
@@ -62,12 +65,14 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Could not clear wp-content directory in App Service");
             }
 
+            this._message = "Splitting App data zip file.";
             Result result = splitWpContentZip();
             if (result.status == Status.Failed || result.status == Status.Cancelled)
             {
                 return result;
             }
 
+            this._message = "Uploading App data split zip files.";
             Result uploadSplitZipFilesResult = this._uploadSplitZipFiles();
             if (uploadSplitZipFilesResult.status != Status.Completed)
             {
@@ -80,7 +85,7 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Could not upload wp-content to app service");
             }
 
-            //Console.WriteLine("Sucessfully uploaded App Service data... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            this._message = String.Format("App data import successful. Time taken = (0) seconds", timer.ElapsedMilliseconds / 1000);
             return new Result(Status.Completed, "Successfully uploaded App Service data.");
         }
 
@@ -129,6 +134,7 @@ namespace WordPressMigrationTool
 
         private bool _processSplitZipFiles()
         {
+            this._message = "Merging App data split zip files";
             string mergeSplitZipCommand = Constants.WPCONTENT_MERGE_SPLLIT_FILES_COMAMND;
             KuduCommandApiResult mergeSplitZipResult = HelperUtils.executeKuduCommandApi(mergeSplitZipCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
             if (mergeSplitZipResult.status != Status.Completed)
@@ -136,6 +142,7 @@ namespace WordPressMigrationTool
                 return false;
             }
 
+            this._message = "Cleaning App data split zip files in destination app.";
             // Clean split zip files in app service once merged
             string linAppSplitZipFilesDir = Constants.WPCONTENT_TEMP_DIR;
             if (!HelperUtils.ClearAppServiceDirectory(linAppSplitZipFilesDir, this._ftpUserName, this._ftpPassword, this._appServiceName))
@@ -143,6 +150,7 @@ namespace WordPressMigrationTool
                 return false;
             }
 
+            this._message = "Extracting App data in destination app.";
             string unzipMergedSplitFileCommand = Constants.UNZIP_MERGED_WPCONTENT_COMMAND;
             KuduCommandApiResult unzipMergedSplitFileResult = HelperUtils.executeKuduCommandApi(unzipMergedSplitFileCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
             if (unzipMergedSplitFileResult.status != Status.Completed)
