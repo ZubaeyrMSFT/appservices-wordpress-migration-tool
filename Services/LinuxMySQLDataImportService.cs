@@ -198,17 +198,21 @@ namespace WordPressMigrationTool
 
         public bool _waitForDBImportInAppService()
         {
-            string checkDbImportStatusNestedCommand = String.Format("grep '{0}' {1}", Constants.DB_IMPORT_STATUS_MESSAGE, Constants.LIN_APP_DB_STATUS_FILE_PATH);
+            string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
             
-            int maxRetryCount = 10000;
+            int maxRetryCount = 2000;
             for (int i=0; i<maxRetryCount; i++)
             {
                 KuduCommandApiResult checkDbImportStatusResult = HelperUtils.executeKuduCommandApi(checkDbImportStatusNestedCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
                 if (checkDbImportStatusResult.status == Status.Completed
                     && checkDbImportStatusResult.exitCode == 0
-                    && checkDbImportStatusResult.output != null && checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_STATUS_MESSAGE))
+                    && checkDbImportStatusResult.output != null)
                 {
-                    return true;
+                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_SUCCESS_MESSAGE))
+                        return true;
+                    
+                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_FAILURE_MESSAGE))
+                        return false;
                 }
                 // Sleep for 10s
                 Thread.Sleep(10000);
