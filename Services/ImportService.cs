@@ -47,10 +47,17 @@ namespace WordPressMigrationTool
             destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
             destinationSite.databaseName = newDatabaseName;
 
+            this.triggerDestinationSiteMigrationState(webAppResource);
+
             this.clearImportFilesDirLocal();
             if (!this.clearMigrateDirInDestinationSite(destinationSite))
             {
                 return new Result(Status.Failed, "Could not clean destination site /home/dev/migrate folder...");
+            }
+
+            if (!this.refreshWPRootDirInDestinationSite(destinationSite))
+            {
+                return new Result(Status.Failed, "Could not refresh WordPress code in destination site...");
             }
 
             Result importAppServiceDataResult = importAppServiceData(destinationSite);
@@ -106,6 +113,55 @@ namespace WordPressMigrationTool
         private bool clearMigrateDirInDestinationSite(SiteInfo destinationSite)
         {
             return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+        }
+
+        private bool refreshWPRootDirInDestinationSite(SiteInfo destinationSite)
+        {
+            if ( ! HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_ROOT_DIR, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName))
+            {
+                return false;
+            }
+
+            string copyWordpressCodeToRootCommand = String.Format("cp -r (0)* {1}", Constants.LIN_APP_WORDPRESS_SRC_CODE_DIR, Constants.LIN_APP_SVC_ROOT_DIR );
+            KuduCommandApiResult copyWordpressCodeToRootDirResult = HelperUtils.executeKuduCommandApi(copyWordpressCodeToRootCommand, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+            if (copyWordpressCodeToRootDirResult.status != Status.Completed)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // Triggers Migration state in destination site which displays migration landing page and prevents WP installation.
+        private bool triggerDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
+        {
+            Dictionary<string, string> appSettings = new Dictionary<string, string>();
+            appSettings.Add(Constants.LIN_APP_PREVENT_WORDPRESS_INSTALL_APP_SETTING, "True");
+            appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
+
+            try
+            {
+                return AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool revertDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
+        {
+            string[] appSettings = { Constants.START_MIGRATION_APP_SETTING };
+
+            try
+            {
+                return AzureManagementUtils.removeApplicationSettingForAppService(destinationSiteResource, appSettings);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
