@@ -32,10 +32,13 @@ namespace WordPressMigrationTool.Utilities
         public const string APPSETTING_DATABASE_USERNAME = "DATABASE_USERNAME";
         public const string APPSETTING_DATABASE_PASSWORD = "DATABASE_PASSWORD";
 
+        public const string LIN_APP_WP_CONFIG_PATH = "/home/site/wwwroot/wp-config.php";
+        public const string LIN_APP_VERSIONPHP_FILE_PATH = "/home/site/wwwroot/wp-includes/version.php";
+        public const string LIN_APP_WP_DEPLOYMENT_STATUS_FILE_PATH = "/home/wp-locks/wp_deployment_status.txt";
         // below value should not end with '/'
         public const string LIN_APP_SVC_WPCONTENT_DIR = "/home/site/wwwroot/wp-content";
         public const string LIN_APP_SVC_ROOT_DIR = "/home/site/wwwroot/";
-        public const string LIN_APP_WORDPRESS_SRC_CODE_DIR = "/usr/src/wordpress/";
+        public const string LIN_APP_WORDPRESS_SRC_CODE_DIR = "/usr/src/wordpress/wordpress-azure/";
         public const string LIN_MYSQL_DUMP_UPLOAD_PATH_FOR_KUDU_API = "dev/migrate/mysql";
 
         public const string WPCONTENT_SPLIT_ZIP_FILES_DIR = DATA_EXPORT_PATH + "wpContentSplitDir\\";
@@ -64,6 +67,7 @@ namespace WordPressMigrationTool.Utilities
         public const string MYSQL_DUMP_FILE_PATH_APP_SETTING = "MIGRATE_MYSQL_DUMP_PATH";
         public const string LIN_APP_PREVENT_WORDPRESS_INSTALL_APP_SETTING = "SKIP_WP_INSTALLATION";
 
+        public const string FIRST_TIME_SETUP_COMPLETETED_MESSAGE = "FIRST_TIME_SETUP_COMPLETED";
         public const string DB_IMPORT_SUCCESS_MESSAGE = "MYSQL_DB_IMPORT_COMPLETED";
         public const string DB_IMPORT_FAILURE_MESSAGE = "MYSQL_DB_IMPORT_FAILED";
         public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/mysql/mysql_import_status.txt";

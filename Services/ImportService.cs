@@ -55,7 +55,7 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Could not clean destination site /home/dev/migrate folder...");
             }
 
-            if (!this.refreshWPRootDirInDestinationSite(destinationSite))
+            if (!this.validateWPRootDirInDestinationSite(destinationSite))
             {
                 return new Result(Status.Failed, "Could not refresh WordPress code in destination site...");
             }
@@ -66,14 +66,21 @@ namespace WordPressMigrationTool
                 return importAppServiceDataResult;
             }
 
-            Result importDatabaseContentResult = importDatabaseContent(destinationSite, destinationSite.databaseName,webAppResource);
+            Result importDatabaseContentResult = importDatabaseContent(destinationSite, destinationSite.databaseName, webAppResource);
             if (importDatabaseContentResult.status == Status.Failed || importDatabaseContentResult.status == Status.Cancelled)
             {
                 return importDatabaseContentResult;
             }
 
-            AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME, 
+            AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME,
                 destinationSite.databaseName);
+
+            this.clearMigrateDirInDestinationSite(destinationSite);
+
+            if (!this.revertDestinationSiteMigrationState(webAppResource))
+            {
+                return new Result(Status.Failed, "Could not remove MIGRATION_IN_PROGRESS app setting.");
+            }
 
             webAppResource.Restart();
             return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
@@ -91,7 +98,7 @@ namespace WordPressMigrationTool
             LinuxMySQLDataImportService linDBImportService = new LinuxMySQLDataImportService(destinationSiteResource, destinationSite.databaseHostname,
                 destinationSite.databaseUsername, destinationSite.databasePassword, newDatabaseName, destinationSite.webAppName,
                 destinationSite.ftpUsername, destinationSite.ftpPassword);
-            
+
             return linDBImportService.importData();
         }
 
@@ -115,25 +122,20 @@ namespace WordPressMigrationTool
             return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
         }
 
-        private bool refreshWPRootDirInDestinationSite(SiteInfo destinationSite)
+        private bool validateWPRootDirInDestinationSite(SiteInfo destinationSite)
         {
-            if ( ! HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_ROOT_DIR, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName))
+            string validateWPRootCommand = String.Format("test -e {0} && test -e {1} && grep '{2}' {3}", Constants.LIN_APP_WP_CONFIG_PATH, Constants.LIN_APP_VERSIONPHP_FILE_PATH, Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE, Constants.LIN_APP_WP_DEPLOYMENT_STATUS_FILE_PATH);
+            KuduCommandApiResult validateWPRootDirResult = HelperUtils.executeKuduCommandApi(validateWPRootCommand, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+            if (validateWPRootDirResult.status != Status.Completed
+                || validateWPRootDirResult.exitCode != 0
+                || !validateWPRootDirResult.output.Contains(Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE))
             {
                 return false;
             }
-
-            string copyWordpressCodeToRootCommand = String.Format("cp -r (0)* {1}", Constants.LIN_APP_WORDPRESS_SRC_CODE_DIR, Constants.LIN_APP_SVC_ROOT_DIR );
-            KuduCommandApiResult copyWordpressCodeToRootDirResult = HelperUtils.executeKuduCommandApi(copyWordpressCodeToRootCommand, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
-            if (copyWordpressCodeToRootDirResult.status != Status.Completed)
-            {
-                return false;
-            }
-
             return true;
         }
 
-
-        // Triggers Migration state in destination site which displays migration landing page and prevents WP installation.
+        // Triggers Migration state in destination site which prevents WP installation.
         private bool triggerDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
         {
             Dictionary<string, string> appSettings = new Dictionary<string, string>();
