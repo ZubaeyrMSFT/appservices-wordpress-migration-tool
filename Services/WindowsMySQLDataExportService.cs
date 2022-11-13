@@ -181,7 +181,7 @@ namespace WordPressMigrationTool
                 }
                 else
                 {
-                    string outputString = "Download progres - Finished exporting " 
+                    string outputString = "Download progress - Finished exporting " 
                         + (e.CurrentTableIndex) + " out of " + e.TotalTables + " tables";
                     HelperUtils.WriteOutputWithRC(outputString, this._progressViewRTextBox);
                 }

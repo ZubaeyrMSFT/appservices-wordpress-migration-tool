@@ -117,5 +117,21 @@ namespace WordPressMigrationTool.Utilities
             webSiteResource.UpdateApplicationSettings(appSettings);
             return true;
         }
+
+        public static bool RemoveApplicationSettingForAppService(WebSiteResource webSiteResource, string[] appSettingsToRemove)
+        {
+            Response<AppServiceConfigurationDictionary> appSettings = webSiteResource.GetApplicationSettings();
+            if (appSettings == null || appSettings.Value == null || appSettings.Value.Properties == null)
+            {
+                throw new ArgumentException("Unable to configure application settings for App Service.");
+            }
+
+            foreach (string appSettingToRemove in appSettingsToRemove)
+            {
+                appSettings.Value.Properties.Remove(appSettingToRemove);
+            }
+            webSiteResource.UpdateApplicationSettings(appSettings);
+            return true;
+        }
     }
 }
