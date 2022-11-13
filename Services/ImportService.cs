@@ -1,14 +1,21 @@
 ﻿using Azure.ResourceManager.AppService;
 using System;
+using System.IO;
+using System.Text;
 using System.Collections.Generic;
-using System.Diagnostics;
 using WordPressMigrationTool.Utilities;
+using System.Threading.Tasks;
+using Ionic.Zip;
+using System.IO.Compression;
+using WordPressMigrationTool.Utilities;
+using System.Diagnostics;
+using Renci.SshNet;
 
 namespace WordPressMigrationTool
 {
     public class ImportService
     {
-        public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
+        public Result importDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
             if (string.IsNullOrWhiteSpace(destinationSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -29,62 +36,134 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
 
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
+            IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+
+            destinationSite.ftpUsername = publishingProfile.PublishingUserName;
+            destinationSite.ftpPassword = publishingProfile.PublishingPassword;
+            destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
+            destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
+            destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+            destinationSite.databaseName = newDatabaseName;
+
+            this.triggerDestinationSiteMigrationState(webAppResource);
+
+            this.clearImportFilesDirLocal();
+            if (!this.clearMigrateDirInDestinationSite(destinationSite))
+            {
+                return new Result(Status.Failed, "Could not clean destination site /home/dev/migrate folder...");
+            }
+
+            if (!this.validateWPRootDirInDestinationSite(destinationSite))
+            {
+                return new Result(Status.Failed, "Could not refresh WordPress code in destination site...");
+            }
+
+            Result importAppServiceDataResult = importAppServiceData(destinationSite);
+            if (importAppServiceDataResult.status == Status.Failed || importAppServiceDataResult.status == Status.Cancelled)
+            {
+                return importAppServiceDataResult;
+            }
+
+            Result importDatabaseContentResult = importDatabaseContent(destinationSite, destinationSite.databaseName, webAppResource);
+            if (importDatabaseContentResult.status == Status.Failed || importDatabaseContentResult.status == Status.Cancelled)
+            {
+                return importDatabaseContentResult;
+            }
+
+            AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME,
+                destinationSite.databaseName);
+
+            this.clearMigrateDirInDestinationSite(destinationSite);
+
+            if (!this.revertDestinationSiteMigrationState(webAppResource))
+            {
+                return new Result(Status.Failed, "Could not remove MIGRATION_IN_PROGRESS app setting.");
+            }
+
+            webAppResource.Restart();
+            return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
+        }
+
+        private Result importAppServiceData(SiteInfo destinationSite)
+        {
+            LinuxAppDataImportService linAppImportService = new LinuxAppDataImportService(destinationSite.webAppName,
+                destinationSite.ftpUsername, destinationSite.ftpPassword);
+            return linAppImportService.importData();
+        }
+
+        private Result importDatabaseContent(SiteInfo destinationSite, String newDatabaseName, WebSiteResource destinationSiteResource)
+        {
+            LinuxMySQLDataImportService linDBImportService = new LinuxMySQLDataImportService(destinationSiteResource, destinationSite.databaseHostname,
+                destinationSite.databaseUsername, destinationSite.databasePassword, newDatabaseName, destinationSite.webAppName,
+                destinationSite.ftpUsername, destinationSite.ftpPassword);
+
+            return linDBImportService.importData();
+        }
+
+        private void clearImportFilesDirLocal()
+        {
+            string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
+            if (Directory.Exists(splitZipFilesDirectory))
+            {
+                Directory.Delete(splitZipFilesDirectory, true);
+            }
+
+            string zippedSplitZipFIlesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR);
+            if (Directory.Exists(zippedSplitZipFIlesDirectory))
+            {
+                Directory.Delete(zippedSplitZipFIlesDirectory, true);
+            }
+        }
+
+        private bool clearMigrateDirInDestinationSite(SiteInfo destinationSite)
+        {
+            return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+        }
+
+        private bool validateWPRootDirInDestinationSite(SiteInfo destinationSite)
+        {
+            string validateWPRootCommand = String.Format("test -e {0} && test -e {1} && grep '{2}' {3}", Constants.LIN_APP_WP_CONFIG_PATH, Constants.LIN_APP_VERSIONPHP_FILE_PATH, Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE, Constants.LIN_APP_WP_DEPLOYMENT_STATUS_FILE_PATH);
+            KuduCommandApiResult validateWPRootDirResult = HelperUtils.executeKuduCommandApi(validateWPRootCommand, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+            if (validateWPRootDirResult.status != Status.Completed
+                || validateWPRootDirResult.exitCode != 0
+                || !validateWPRootDirResult.output.Contains(Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        // Triggers Migration state in destination site which prevents WP installation.
+        private bool triggerDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
+        {
+            Dictionary<string, string> appSettings = new Dictionary<string, string>();
+            appSettings.Add(Constants.LIN_APP_PREVENT_WORDPRESS_INSTALL_APP_SETTING, "True");
+            appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
+
             try
             {
-                Console.WriteLine("Retrieving WebApp publishing profile and database details for Linux WordPress... ");
-                Stopwatch timer = Stopwatch.StartNew();
-
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
-                IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
-                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-
-                destinationSite.ftpUsername = publishingProfile.PublishingUserName;
-                destinationSite.ftpPassword = publishingProfile.PublishingPassword;
-                destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
-                destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
-                destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
-                destinationSite.databaseName = newDatabaseName;
-
-                Console.WriteLine("Successfully retrieved the details... time taken={0} seconds\n",
-                    (timer.ElapsedMilliseconds / 1000));
-                timer.Stop();
-
-
-                Result result = ImportAppServiceData(destinationSite);
-                if (result.status == Status.Failed || result.status == Status.Cancelled)
-                {
-                    return result;
-                }
-
-                result = ImportDatbaseContent(destinationSite);
-                if (result.status == Status.Failed || result.status == Status.Cancelled)
-                {
-                    return result;
-                }
-
-                AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME,
-                    destinationSite.databaseName);
-
-                webAppResource.Restart();
-                return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
-
+                return AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings);
             }
-            catch (Exception ex)
+            catch
             {
-                return new Result(Status.Failed, ex.Message);
+                return false;
             }
         }
 
-        private Result ImportAppServiceData(SiteInfo destinationSite)
+        private bool revertDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
         {
-            //TODO Needs to be implemented
-            return new Result(Status.Failed, "Unable to import the file data to Linux App Services."); ;
-        }
+            string[] appSettings = { Constants.START_MIGRATION_APP_SETTING };
 
-        private Result ImportDatbaseContent(SiteInfo destinationSite)
-        {
-            //TODO Needs to be implemented
-            return new Result(Status.Failed, "Unable to import the MySQL data to Linux WordPress."); ;
+            try
+            {
+                return AzureManagementUtils.removeApplicationSettingForAppService(destinationSiteResource, appSettings);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

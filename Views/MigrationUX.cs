@@ -36,10 +36,10 @@ namespace WordPressMigrationTool
 
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
-
+            
             try
             {
-                Result result = new MigrationService().Migrate(sourceSiteInfo, destinationSiteInfo);
+                Result result =  new MigrationService().migrate(sourceSiteInfo, destinationSiteInfo);
                 DialogResult errorDialogRes = MessageBox.Show(result.message, "Error Message", MessageBoxButtons.OKCancel);
                 if (errorDialogRes == DialogResult.OK)
                 {

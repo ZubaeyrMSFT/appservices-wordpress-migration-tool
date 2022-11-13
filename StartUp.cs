@@ -1,3 +1,7 @@
+using System.Diagnostics;
+using System.Text;
+using Renci.SshNet;
+using Ionic.Zip;
 namespace WordPressMigrationTool
 {
     internal static class StartUp
@@ -12,7 +16,7 @@ namespace WordPressMigrationTool
             ////// see https://aka.ms/applicationconfiguration.
             ////ApplicationConfiguration.Initialize();
             ////Application.Run(new MigrationUX());
-
+            
             if (args.Length < 6)
             {
                 Console.WriteLine("Insufficient input data! Please provide all " +
@@ -22,7 +26,7 @@ namespace WordPressMigrationTool
 
             SiteInfo sourceSiteInfo = new SiteInfo(args[0], args[1], args[2]);
             SiteInfo destinationSiteInfo = new SiteInfo(args[3], args[4], args[5]);
-            Console.WriteLine(new MigrationService().Migrate(sourceSiteInfo, destinationSiteInfo));
+            Console.WriteLine(new MigrationService().migrate(sourceSiteInfo, destinationSiteInfo));
         }
     }
 }
