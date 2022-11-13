@@ -189,7 +189,6 @@ namespace WordPressMigrationTool
             try
             {
                 Dictionary<string, string> appSettings = new Dictionary<string, string>();
-                appSettings.Add(Constants.LIN_APP_PREVENT_WORDPRESS_INSTALL_APP_SETTING, "True");
                 appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
                 if (AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings))
                 {

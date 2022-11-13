@@ -57,10 +57,14 @@ namespace WordPressMigrationTool
             try
             {
                 Result res = this.Migrate();
+                HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
                 if (res.status == Status.Failed || res.status == Status.Cancelled)
                 {
-                    HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
                     MessageBox.Show(res.message, "Failed!");
+                }
+                else
+                {
+                    MessageBox.Show(res.message, "Success!");
                 }
             }
             catch (Exception ex)

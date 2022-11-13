@@ -64,7 +64,6 @@ namespace WordPressMigrationTool.Utilities
         public const string START_MIGRATION_APP_SETTING = "MIGRATION_IN_PROGRESS";
         public const string NEW_DATABASE_NAME_APP_SETTING = "MIGRATE_NEW_DATABASE_NAME";
         public const string MYSQL_DUMP_FILE_PATH_APP_SETTING = "MIGRATE_MYSQL_DUMP_PATH";
-        public const string LIN_APP_PREVENT_WORDPRESS_INSTALL_APP_SETTING = "SKIP_WP_INSTALLATION";
 
         public const string FIRST_TIME_SETUP_COMPLETETED_MESSAGE = "FIRST_TIME_SETUP_COMPLETED";
         public const string DB_IMPORT_SUCCESS_MESSAGE = "MYSQL_DB_IMPORT_COMPLETED";
