@@ -12,8 +12,8 @@ namespace WordPressMigrationTool.Utilities
 
         public const string DATA_EXPORT_PATH = "%userprofile%\\AppData\\Local\\WordPressMigration\\";
         public const string WIN_APPSERVICE_DATA_EXPORT_PATH = DATA_EXPORT_PATH + WIN_WPCONTENT_ZIP_FILENAME;
-        public const string WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_ZIP_FILENAME;
-        public const string WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH = DATA_EXPORT_PATH + "mysqldata.zip";
+        public const string WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH = DATA_EXPORT_PATH + "mysqldata.sql";
+        public const string WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_ZIP_FILENAME;
 
         public const int MAX_WIN_APPSERVICE_RETRIES = 3;
         public const int MAX_WIN_MYSQLDATA_RETRIES = 3;
