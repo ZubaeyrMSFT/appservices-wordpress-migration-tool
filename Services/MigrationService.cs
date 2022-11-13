@@ -27,7 +27,6 @@ namespace WordPressMigrationTool
                 if (exporttRes.status == Status.Failed || exporttRes.status == Status.Cancelled)
                 {
                     this.CleanLocalTempFiles();
-                    this.CleanDestinationAppTempFiles(this._destinationSiteInfo);
                     return exporttRes;
                 }
 
@@ -49,8 +48,6 @@ namespace WordPressMigrationTool
                 return new Result(Status.Completed, Constants.SUCCESS_MESSAGE);
             }
             catch (Exception ex) {
-                this.CleanLocalTempFiles();
-                this.CleanDestinationAppTempFiles(this._destinationSiteInfo);
                 return new Result(Status.Failed, ex.Message);
             }
         }
@@ -97,8 +94,7 @@ namespace WordPressMigrationTool
 
         private Result CleanDestinationAppTempFiles(SiteInfo destinationSite)
         {
-            HelperUtils.WriteOutputWithNewLine("Cleaning up intermediate files on Linux App Service.", this._progressViewRTextBox);
-            return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername, 
+            return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername,
                 destinationSite.ftpPassword, destinationSite.webAppName);
         }
     }

@@ -170,7 +170,7 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, errMsg);
             }
 
-            return new Result(Status.Failed, "Successfully created a " +
+            return new Result(Status.Completed, "Successfully created a " +
                 "temp MySQL data dump directory on Linux App Service.");
         }
 

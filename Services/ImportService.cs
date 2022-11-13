@@ -35,29 +35,31 @@ namespace WordPressMigrationTool
             {
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
+            WebSiteResource webAppResource = null;
 
-
-            HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database " +
-                "details for Linux WordPress... ", this._progressViewRTextBox);
-            Stopwatch timer = Stopwatch.StartNew();
-
-            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
-            IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
-            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-
-            destinationSite.ftpUsername = publishingProfile.PublishingUserName;
-            destinationSite.ftpPassword = publishingProfile.PublishingPassword;
-            destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
-            destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
-            destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
-            destinationSite.databaseName = newDatabaseName;
-
-            HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken="
-                + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
-            timer.Stop();
 
             try
             {
+                HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database " 
+                    + "details for Linux WordPress... ", this._progressViewRTextBox);
+                Stopwatch timer = Stopwatch.StartNew();
+
+                webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
+                IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+
+                destinationSite.ftpUsername = publishingProfile.PublishingUserName;
+                destinationSite.ftpPassword = publishingProfile.PublishingPassword;
+                destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
+                destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
+                destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+                destinationSite.databaseName = newDatabaseName;
+
+                HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken="
+                    + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
+                timer.Stop();
+
+
                 this.ClearImportFilesDirLocal();
                 Result result = this.TriggerDestinationSiteMigrationState(webAppResource);
                 if (result.status != Status.Completed)
@@ -115,7 +117,10 @@ namespace WordPressMigrationTool
             }
             catch (Exception ex)
             {
-                this.RevertDestinationSiteMigrationState(webAppResource);
+                if (webAppResource != null)
+                {
+                    this.RevertDestinationSiteMigrationState(webAppResource);
+                }
                 return new Result(Status.Failed, ex.Message);
             }
         }

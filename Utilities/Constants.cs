@@ -18,9 +18,9 @@ namespace WordPressMigrationTool.Utilities
         public const int MAX_WIN_MYSQLDATA_RETRIES = 3;
         public const int MAX_APPDATA_UPLOAD_RETRIES = 3;
         public const int MAX_MYSQLDATA_UPLOAD_RETRIES = 3;
-        public const int MAX_WPCONTENT_CLEAR_RETRIES = 10;
+        public const int MAX_WPCONTENT_CLEAR_RETRIES = 3;
         public const int MAX_RETRIES_COMMON = 3;
-        public const int MAX_APP_CLEAR_DIR_RETRIES = 10;
+        public const int MAX_APP_CLEAR_DIR_RETRIES = 3;
 
         public const string SUCCESS_EXPORT_MESSAGE = "Successfully exported the data from Windows WordPress!";
         public const string SUCCESS_IMPORT_MESSAGE = "Successfully imported the data to Linux WordPress!";

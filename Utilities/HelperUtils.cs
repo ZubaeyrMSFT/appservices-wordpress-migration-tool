@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.IO;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -136,7 +134,7 @@ namespace WordPressMigrationTool.Utilities
             }
 
             string command = String.Format("bash -c \" {0} \"", inputCommand);
-            var appServiceKuduCommandURL = getKuduApiForCommandExec(appServiceName);
+            var appServiceKuduCommandURL = GetKuduApiForCommandExec(appServiceName);
 
             int trycount = 1;
             while (trycount <= maxRetryCount)
@@ -168,7 +166,7 @@ namespace WordPressMigrationTool.Utilities
                             return new KuduCommandApiResult(Status.Completed, responseData.Output, responseData.Error, responseData.ExitCode);
                         }
                     }
-                    catch (Exception e) { }
+                    catch { }
 
                     trycount++;
                     if (trycount > Constants.MAX_APPDATA_UPLOAD_RETRIES)
@@ -184,13 +182,12 @@ namespace WordPressMigrationTool.Utilities
             return new KuduCommandApiResult(Status.Failed);
         }
 
-        public static Result ClearAppServiceDirectory(string targetFolder, string ftpUsername, string ftpPassword, string appServiceName)
+        public static Result ClearAppServiceDirectory(string targetFolder, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = Constants.MAX_APP_CLEAR_DIR_RETRIES)
         {
             Status result = Status.Failed;
             string message = "Unable to clear " + targetFolder 
                 + " directory on " + appServiceName + " App Service.";
 
-            int maxRetryCount = Constants.MAX_APP_CLEAR_DIR_RETRIES;
             if (maxRetryCount <= 0)
             {
                 return new Result(Status.Failed, message);
