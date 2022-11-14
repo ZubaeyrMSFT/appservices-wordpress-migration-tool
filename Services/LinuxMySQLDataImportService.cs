@@ -228,11 +228,13 @@ namespace WordPressMigrationTool
                 {
                     if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_SUCCESS_MESSAGE))
                     {
-                        return new Result(Status.Completed, "\nUnable to validate MySQL import status.");
+                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
+                        return new Result(Status.Completed, "Unable to validate MySQL import status.");
                     }
                     if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_FAILURE_MESSAGE))
                     {
-                        return new Result(Status.Failed, "\nCould not import MySQL data on destination site.");
+                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
+                        return new Result(Status.Failed, "Could not import MySQL data on destination site.");
                     }
                 }
 
