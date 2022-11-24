@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -12,7 +13,6 @@ namespace WordPressMigrationTool.Utilities
 {
     public static class AzureManagementUtils
     {
-
         public static WebSiteResource GetWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName)
         {
             ArmClient client = new ArmClient(new DefaultAzureCredential(true));
@@ -44,6 +44,82 @@ namespace WordPressMigrationTool.Utilities
 
             return webSite;
         }
+
+        public static List<Subscription> GetSubscriptions()
+        {
+            System.Diagnostics.Debug.WriteLine("getting subscriptions");
+            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            if (client == null)
+            {
+                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
+            }
+            SubscriptionCollection subscriptions = client.GetSubscriptions();
+
+            List<Subscription> subscriptionNames = new List<Subscription>();
+
+            foreach (SubscriptionResource subscription in subscriptions)
+            {
+                if (subscription == null || !subscription.HasData)
+                {
+                    continue;
+                }
+                System.Diagnostics.Debug.WriteLine("displayname is " + subscription.Data.DisplayName);
+                subscriptionNames.Add(new Subscription(subscription.Data.DisplayName, subscription.Data.SubscriptionId));
+            }
+            System.Diagnostics.Debug.WriteLine("number of subscriptionNames is " + subscriptionNames.Count().ToString());
+
+            return subscriptionNames;
+        }
+
+        public static async Task<List<String>> GetResourceGroupsInSubscription(string subscriptionId)
+        {
+            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            if (client == null)
+            {
+                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
+            }
+            SubscriptionCollection subscriptions = client.GetSubscriptions();
+            SubscriptionResource subscription = subscriptions.Get("b233f3cd-c75c-4aa4-b90b-d1bc66fdc5e7");
+            System.Diagnostics.Debug.WriteLine("subscription name is in azuremanagementutils " + subscription.Data.DisplayName);
+            ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
+
+            List<string> resourceGroupNames = new List<string>();
+            
+            foreach(ResourceGroupResource resourceGroup in resourceGroups)
+            {
+                if (resourceGroup == null || !resourceGroup.HasData)
+                    continue;
+                resourceGroupNames.Add(resourceGroup.Data.Name);
+            }
+
+            return resourceGroupNames;
+        }
+
+        public static async Task<List<string>> GetAppServicesInResourceGroup(string SubscriptionId, string ResourceGroupName)
+        {
+            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            if (client == null)
+            {
+                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
+            }
+
+            SubscriptionCollection subscriptions = client.GetSubscriptions();
+            SubscriptionResource subscription = subscriptions.Get("b233f3cd-c75c-4aa4-b90b-d1bc66fdc5e7");
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup(ResourceGroupName);
+            WebSiteCollection webSites = resourceGroup.GetWebSites();
+
+            List<string> webSiteNames = new List<string>();
+
+            foreach (WebSiteResource webSite in webSites)
+            {
+                if (webSite == null || !webSite.HasData)
+                    continue;
+                webSiteNames.Add(webSite.Data.Name);
+            }
+
+            return webSiteNames;
+        }
+
 
         public static string GetDatabaseConnectionString(WebSiteResource webSiteResource)
         {

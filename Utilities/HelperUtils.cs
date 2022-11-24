@@ -280,5 +280,10 @@ namespace WordPressMigrationTool.Utilities
 
             return new Result(result, message);
         }
+
+        public static List<string> GetDefaultDropdownList (string displayMsg)
+        {
+            return new List<string>() { displayMsg };
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace WordPressMigrationTool
+﻿using WordPressMigrationTool.Utilities;
+
+namespace WordPressMigrationTool
 {
     partial class MigrationUX
     {
@@ -35,17 +37,17 @@
             this.winSubscriptionIdLabel = new System.Windows.Forms.Label();
             this.winResourceGroupNameLabel = new System.Windows.Forms.Label();
             this.winAppServiceNameLabel = new System.Windows.Forms.Label();
-            this.winSubscriptionTextBox = new System.Windows.Forms.TextBox();
-            this.winResourceGroupTextBox = new System.Windows.Forms.TextBox();
-            this.winAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.winSubscriptionComboBox = new System.Windows.Forms.ComboBox();
+            this.winResourceGroupComboBox = new System.Windows.Forms.ComboBox();
+            this.winAppServiceComboBox = new System.Windows.Forms.ComboBox();
             this.linuxDetailsGroupBox = new System.Windows.Forms.GroupBox();
             this.linuxDetailsTableLayout = new System.Windows.Forms.TableLayoutPanel();
             this.linuxSubscriptionIdLabel = new System.Windows.Forms.Label();
             this.linuxResourceGroupLabel = new System.Windows.Forms.Label();
             this.linuxAppServiceNameLabel = new System.Windows.Forms.Label();
-            this.linuxSubscriptionIdTextBox = new System.Windows.Forms.TextBox();
-            this.linuxResourceGroupTextBox = new System.Windows.Forms.TextBox();
-            this.linuxAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.linuxSubscriptionComboBox = new System.Windows.Forms.ComboBox();
+            this.linuxResourceGroupComboBox = new System.Windows.Forms.ComboBox();
+            this.linuxAppServiceComboBox = new System.Windows.Forms.ComboBox();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.bottomTableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.bottomTableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -102,9 +104,9 @@
             this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionIdLabel, 0, 0);
             this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupNameLabel, 0, 1);
             this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceNameLabel, 0, 2);
-            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionTextBox, 1, 0);
-            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupTextBox, 1, 1);
-            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceTextBox, 1, 2);
+            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionComboBox, 1, 0);
+            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupComboBox, 1, 1);
+            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceComboBox, 1, 2);
             this.windowsDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
             this.windowsDetailsTableLayout.Name = "windowsDetailsTableLayout";
             this.windowsDetailsTableLayout.RowCount = 3;
@@ -141,26 +143,33 @@
             this.winAppServiceNameLabel.TabIndex = 2;
             this.winAppServiceNameLabel.Text = "App Service Name";
             // 
-            // winSubscriptionTextBox
+            // winSubscriptionComboBox
+            //
+            this.winSubscriptionComboBox.Location = new System.Drawing.Point(130, 3);
+            this.winSubscriptionComboBox.Name = "winSubscriptionComboBox";
+            this.winSubscriptionComboBox.Size = new System.Drawing.Size(281, 23);
+            this.winSubscriptionComboBox.TabIndex = 3;
+            this.winSubscriptionComboBox.DataSource = this.WinSubscriptions;
+            this.winSubscriptionComboBox.DisplayMember = "Name";
+            this.winSubscriptionComboBox.ValueMember = "Id";
+            this.winSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(async (s, e) => await this.winSubscriptionComboBox_SelectedIndexChanged(s, e));
             // 
-            this.winSubscriptionTextBox.Location = new System.Drawing.Point(130, 3);
-            this.winSubscriptionTextBox.Name = "winSubscriptionTextBox";
-            this.winSubscriptionTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winSubscriptionTextBox.TabIndex = 3;
+            // winResourceGroupComboBox
             // 
-            // winResourceGroupTextBox
+            this.winResourceGroupComboBox.Location = new System.Drawing.Point(130, 40);
+            this.winResourceGroupComboBox.Name = "winResourceGroupComboBox";
+            this.winResourceGroupComboBox.Size = new System.Drawing.Size(281, 23);
+            this.winResourceGroupComboBox.TabIndex = 4;
+            this.winResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+            this.winResourceGroupComboBox.SelectionChangeCommitted += new System.EventHandler(async (s, e) => await this.winResourceGroupComboBox_SelectedIndexChanged(s, e));
             // 
-            this.winResourceGroupTextBox.Location = new System.Drawing.Point(130, 40);
-            this.winResourceGroupTextBox.Name = "winResourceGroupTextBox";
-            this.winResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winResourceGroupTextBox.TabIndex = 4;
+            // winAppServiceComboBox
             // 
-            // winAppServiceTextBox
-            // 
-            this.winAppServiceTextBox.Location = new System.Drawing.Point(130, 77);
-            this.winAppServiceTextBox.Name = "winAppServiceTextBox";
-            this.winAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winAppServiceTextBox.TabIndex = 5;
+            this.winAppServiceComboBox.Location = new System.Drawing.Point(130, 77);
+            this.winAppServiceComboBox.Name = "winAppServiceComboBox";
+            this.winAppServiceComboBox.Size = new System.Drawing.Size(281, 23);
+            this.winAppServiceComboBox.TabIndex = 5;
+            this.winAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress app");
             // 
             // linuxDetailsGroupBox
             // 
@@ -180,9 +189,9 @@
             this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdLabel, 0, 0);
             this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupLabel, 0, 1);
             this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceNameLabel, 0, 2);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdTextBox, 1, 0);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupTextBox, 1, 1);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceTextBox, 1, 2);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionComboBox, 1, 0);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupComboBox, 1, 1);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceComboBox, 1, 2);
             this.linuxDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
             this.linuxDetailsTableLayout.Name = "linuxDetailsTableLayout";
             this.linuxDetailsTableLayout.RowCount = 3;
@@ -221,27 +230,34 @@
             this.linuxAppServiceNameLabel.TabIndex = 2;
             this.linuxAppServiceNameLabel.Text = "App Service Name";
             // 
-            // linuxSubscriptionIdTextBox
+            // linuxSubscriptionComboBox
             // 
-            this.linuxSubscriptionIdTextBox.Location = new System.Drawing.Point(130, 3);
-            this.linuxSubscriptionIdTextBox.Name = "linuxSubscriptionIdTextBox";
-            this.linuxSubscriptionIdTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxSubscriptionIdTextBox.TabIndex = 3;
+            this.linuxSubscriptionComboBox.Location = new System.Drawing.Point(130, 3);
+            this.linuxSubscriptionComboBox.Name = "linuxSubscriptionComboBox";
+            this.linuxSubscriptionComboBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxSubscriptionComboBox.TabIndex = 11;
+            this.linuxSubscriptionComboBox.DataSource = this.LinSubscriptions;
+            this.linuxSubscriptionComboBox.DisplayMember = "Name";
+            this.linuxSubscriptionComboBox.ValueMember = "Id";
+            this.linuxSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(async (s, e) => await this.linuxSubscriptionComboBox_SelectedIndexChanged(s, e));
             // 
-            // linuxResourceGroupTextBox
+            // linuxResourceGroupComboBox
+            // win
+            this.linuxResourceGroupComboBox.Location = new System.Drawing.Point(130, 44);
+            this.linuxResourceGroupComboBox.Name = "linuxResourceGroupComboBox";
+            this.linuxResourceGroupComboBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxResourceGroupComboBox.TabIndex = 12;
+            this.linuxResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+            this.linuxResourceGroupComboBox.SelectionChangeCommitted += new System.EventHandler(async(s,e) => await this.linuxResourceGroupComboBox_SelectedIndexChanged(s, e));
+            //
+            // linuxAppServiceComboBox
             // 
-            this.linuxResourceGroupTextBox.Location = new System.Drawing.Point(130, 44);
-            this.linuxResourceGroupTextBox.Name = "linuxResourceGroupTextBox";
-            this.linuxResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxResourceGroupTextBox.TabIndex = 4;
-            // 
-            // linuxAppServiceTextBox
-            // 
-            this.linuxAppServiceTextBox.Location = new System.Drawing.Point(130, 85);
-            this.linuxAppServiceTextBox.Name = "linuxAppServiceTextBox";
-            this.linuxAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxAppServiceTextBox.TabIndex = 5;
-            // 
+            this.linuxAppServiceComboBox.Location = new System.Drawing.Point(130, 85);
+            this.linuxAppServiceComboBox.Name = "linuxAppServiceComboBox";
+            this.linuxAppServiceComboBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxAppServiceComboBox.TabIndex = 14;
+            this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress App");
+            //
             // flowLayoutPanel2
             // 
             this.flowLayoutPanel2.Controls.Add(this.bottomTableLayoutPanel1);
@@ -340,15 +356,15 @@
         private Label winSubscriptionIdLabel;
         private Label winResourceGroupNameLabel;
         private Label winAppServiceNameLabel;
-        private TextBox winSubscriptionTextBox;
-        private TextBox winResourceGroupTextBox;
-        private TextBox winAppServiceTextBox;
+        private ComboBox winSubscriptionComboBox;
+        private ComboBox winResourceGroupComboBox;
+        private ComboBox winAppServiceComboBox;
         private TableLayoutPanel linuxDetailsTableLayout;
         private Label linuxSubscriptionIdLabel;
         private Label linuxResourceGroupLabel;
         private Label linuxAppServiceNameLabel;
-        private TextBox linuxSubscriptionIdTextBox;
-        private TextBox linuxResourceGroupTextBox;
-        private TextBox linuxAppServiceTextBox;
+        private ComboBox linuxSubscriptionComboBox;
+        private ComboBox linuxResourceGroupComboBox;
+        private ComboBox linuxAppServiceComboBox;
     }
 }
