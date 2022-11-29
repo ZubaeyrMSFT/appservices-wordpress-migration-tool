@@ -45,7 +45,7 @@ namespace WordPressMigrationTool.Utilities
             return webSite;
         }
 
-        public static List<Subscription> GetSubscriptions()
+        public static SubscriptionCollection GetSubscriptions()
         {
             System.Diagnostics.Debug.WriteLine("getting subscriptions");
             ArmClient client = new ArmClient(new DefaultAzureCredential(true));
@@ -53,34 +53,14 @@ namespace WordPressMigrationTool.Utilities
             {
                 throw new InvalidCredentialException("Unable to authenticated to Azure Services");
             }
-            SubscriptionCollection subscriptions = client.GetSubscriptions();
 
-            List<Subscription> subscriptionNames = new List<Subscription>();
-
-            foreach (SubscriptionResource subscription in subscriptions)
-            {
-                if (subscription == null || !subscription.HasData)
-                {
-                    continue;
-                }
-                System.Diagnostics.Debug.WriteLine("displayname is " + subscription.Data.DisplayName);
-                subscriptionNames.Add(new Subscription(subscription.Data.DisplayName, subscription.Data.SubscriptionId));
-            }
-            System.Diagnostics.Debug.WriteLine("number of subscriptionNames is " + subscriptionNames.Count().ToString());
-
-            return subscriptionNames;
+            return client.GetSubscriptions();
         }
 
-        public static async Task<List<String>> GetResourceGroupsInSubscription(string subscriptionId)
+        public static List<String> GetResourceGroupsInSubscription(string subscriptionId, SubscriptionCollection subscriptions)
         {
-            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
-            if (client == null)
-            {
-                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
-            }
-            SubscriptionCollection subscriptions = client.GetSubscriptions();
-            SubscriptionResource subscription = subscriptions.Get("b233f3cd-c75c-4aa4-b90b-d1bc66fdc5e7");
-            System.Diagnostics.Debug.WriteLine("subscription name is in azuremanagementutils " + subscription.Data.DisplayName);
+            System.Diagnostics.Debug.WriteLine("subscriptionId in getresourcegroups is " + subscriptionId + "|");
+            SubscriptionResource subscription = subscriptions.Get(subscriptionId);
             ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
 
             List<string> resourceGroupNames = new List<string>();
@@ -95,17 +75,10 @@ namespace WordPressMigrationTool.Utilities
             return resourceGroupNames;
         }
 
-        public static async Task<List<string>> GetAppServicesInResourceGroup(string SubscriptionId, string ResourceGroupName)
+        public static List<string> GetAppServicesInResourceGroup(string subscriptionId, string resourceGroupName, SubscriptionCollection subscriptions)
         {
-            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
-            if (client == null)
-            {
-                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
-            }
-
-            SubscriptionCollection subscriptions = client.GetSubscriptions();
-            SubscriptionResource subscription = subscriptions.Get("b233f3cd-c75c-4aa4-b90b-d1bc66fdc5e7");
-            ResourceGroupResource resourceGroup = subscription.GetResourceGroup(ResourceGroupName);
+            SubscriptionResource subscription = subscriptions.Get(subscriptionId);
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup(resourceGroupName);
             WebSiteCollection webSites = resourceGroup.GetWebSites();
 
             List<string> webSiteNames = new List<string>();

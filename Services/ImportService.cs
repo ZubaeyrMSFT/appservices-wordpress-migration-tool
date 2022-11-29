@@ -1,4 +1,5 @@
 ﻿using Azure.ResourceManager.AppService;
+using MySqlX.XDevAPI.Common;
 using System.Diagnostics;
 using WordPressMigrationTool.Utilities;
 
@@ -59,7 +60,6 @@ namespace WordPressMigrationTool
                     + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
                 timer.Stop();
 
-
                 this.ClearImportFilesDirLocal();
                 Result result = this.TriggerDestinationSiteMigrationState(webAppResource);
                 if (result.status != Status.Completed)
@@ -98,6 +98,13 @@ namespace WordPressMigrationTool
                 HelperUtils.WriteOutputWithNewLine("Updating database details for Linux WordPress", this._progressViewRTextBox);
                 AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME,
                     destinationSite.databaseName);
+
+                result = this.PostProcessingImport(destinationSite, destinationSite.databaseName, webAppResource);
+                if (result.status != Status.Completed)
+                {
+                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    return result;
+                }
 
                 result = this.ClearMigrateDirInDestinationSite(destinationSite);
                 if (result.status != Status.Completed)
@@ -217,6 +224,104 @@ namespace WordPressMigrationTool
             }
             return new Result(Status.Failed, "Unable to revert migration " +
                 "application settings on Linux App Service.");
+        }
+
+        public Result PostProcessingImport(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
+        {
+            Result result = this._StartPostProcessing(destinationSite, databaseName, webAppResource);
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
+            result = this._WaitForPostProcessing(destinationSite, databaseName, webAppResource);
+            if (result.status != Status.Completed)
+            {
+                this.StopPostProcessing(destinationSite, databaseName, webAppResource);
+                return result;
+            }
+
+            result = this.StopPostProcessing(destinationSite, databaseName, webAppResource);
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
+            return result;
+        }
+
+        public Result _StartPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
+        {
+            try
+            {
+                HelperUtils.WriteOutputWithNewLine("Initiating MySQL import on destination site.", this._progressViewRTextBox);
+                Dictionary<string, string> appSettings = new Dictionary<string, string>();
+                appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
+                appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, databaseName);
+                appSettings.Add(Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING, String.Format("{0}{1}", Constants.MYSQL_TEMP_DIR, Constants.WIN_MYSQL_SQL_FILENAME));
+                if (AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings))
+                {
+                    return new Result(Status.Completed, "");
+                }
+            }
+            catch { }
+            return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
+        }
+
+        public Result StopPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
+        {
+            int retiresCount = 1;
+            while (retiresCount <= Constants.MAX_RETRIES_COMMON)
+            {
+                try
+                {
+                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
+                    if (AzureManagementUtils.RemoveApplicationSettingForAppService(destinationSiteResource, appSettings))
+                    {
+                        return new Result(Status.Completed, "");
+                    }
+                }
+                catch { }
+                retiresCount++;
+            }
+
+            return new Result(Status.Failed, "Could not clear " +
+                "App Settings used for database import trigger...");
+        }
+
+        public Result _WaitForPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
+        {
+            string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
+            Stopwatch timer = Stopwatch.StartNew();
+            int maxRetryCount = 2000;
+
+            for (int i = 0; i < maxRetryCount; i++)
+            {
+                KuduCommandApiResult checkDbImportStatusResult = HelperUtils.ExecuteKuduCommandApi(checkDbImportStatusNestedCommand, destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+                if (checkDbImportStatusResult.status == Status.Completed
+                    && checkDbImportStatusResult.exitCode == 0
+                    && checkDbImportStatusResult.output != null)
+                {
+                    if (checkDbImportStatusResult.output.Contains(Constants.IMPORT_SUCCESS_MESSAGE))
+                    {
+                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
+                        return new Result(Status.Completed, "Completed Post processing on destination site.");
+                    }
+                    if (checkDbImportStatusResult.output.Contains(Constants.IMPORT_FAILURE_MESSAGE))
+                    {
+                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
+                        return new Result(Status.Failed, "Could not complete post processing on destination site.");
+                    }
+                }
+
+                HelperUtils.WriteOutputWithRC("Waiting for post processing of import data. Elapsed time = "
+                    + (timer.ElapsedMilliseconds / 1000) + " seconds.", this._progressViewRTextBox);
+                Thread.Sleep(10000);
+            }
+
+            timer.Stop();
+            HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
+            return new Result(Status.Failed, "Unable to complete post processing of Import on destination site.");
         }
     }
 }

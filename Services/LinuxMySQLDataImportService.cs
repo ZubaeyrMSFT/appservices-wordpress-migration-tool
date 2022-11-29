@@ -107,25 +107,6 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            result = this._StartDatabaseImportInAppContainer();
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
-            result = this._WaitForDBImportInAppService();
-            if (result.status != Status.Completed)
-            {
-                this.StopDatabaseImportInAppContainer();
-                return result;
-            }
-
-            result = this.StopDatabaseImportInAppContainer();
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
             timer.Stop();
             HelperUtils.WriteOutputWithNewLine("Sucessfully migrated MySQL data to destination site... " +
                 "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
@@ -172,80 +153,6 @@ namespace WordPressMigrationTool
 
             return new Result(Status.Completed, "Successfully created a " +
                 "temp MySQL data dump directory on Linux App Service.");
-        }
-
-        public Result _StartDatabaseImportInAppContainer()
-        {
-            try
-            {
-                HelperUtils.WriteOutputWithNewLine("Initiating MySQL import on destination site.", this._progressViewRTextBox);
-                Dictionary<string, string> appSettings = new Dictionary<string, string>();
-                appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
-                appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, this._databaseName);
-                appSettings.Add(Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING, String.Format("{0}{1}", Constants.MYSQL_TEMP_DIR, Constants.WIN_MYSQL_SQL_FILENAME));
-                if (AzureManagementUtils.UpdateApplicationSettingForAppService(this._destinationSiteResource, appSettings))
-                {
-                    return new Result(Status.Completed, "");
-                }
-            }
-            catch { }
-            return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
-        }
-
-        public Result StopDatabaseImportInAppContainer()
-        {
-            int retiresCount = 1;
-            while (retiresCount <= Constants.MAX_RETRIES_COMMON)
-            {
-                try
-                {
-                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
-                    if (AzureManagementUtils.RemoveApplicationSettingForAppService(this._destinationSiteResource, appSettings))
-                    {
-                        return new Result(Status.Completed, "");
-                    }
-                }
-                catch { }
-                retiresCount++;
-            }
-           
-            return new Result(Status.Failed, "Could not clear " +
-                "App Settings used for database import trigger...");
-        }
-
-        public Result _WaitForDBImportInAppService()
-        {
-            string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
-            Stopwatch timer = Stopwatch.StartNew();
-            int maxRetryCount = 2000;
-
-            for (int i=0; i<maxRetryCount; i++)
-            {
-                KuduCommandApiResult checkDbImportStatusResult = HelperUtils.ExecuteKuduCommandApi(checkDbImportStatusNestedCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-                if (checkDbImportStatusResult.status == Status.Completed
-                    && checkDbImportStatusResult.exitCode == 0
-                    && checkDbImportStatusResult.output != null)
-                {
-                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_SUCCESS_MESSAGE))
-                    {
-                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Completed, "Unable to validate MySQL import status.");
-                    }
-                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_FAILURE_MESSAGE))
-                    {
-                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Failed, "Could not import MySQL data on destination site.");
-                    }
-                }
-
-                HelperUtils.WriteOutputWithRC("Waiting for MySQL database import to finish. Elapsed time = " 
-                    + (timer.ElapsedMilliseconds / 1000) + " seconds.", this._progressViewRTextBox);
-                Thread.Sleep(10000);
-            }
-
-            timer.Stop();
-            HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-            return new Result(Status.Failed, "Unable to validate MySQL import status on destination site.");
         }
     }
 }

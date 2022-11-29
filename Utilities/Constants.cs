@@ -4,6 +4,8 @@ namespace WordPressMigrationTool.Utilities
 {
     public static class Constants
     {
+        public const string AZURE_PORTAL_URL = "https://ms.portal.azure.com/#create/WordPress.WordPress";
+
         public const int KUDU_ZIP_API_MAX_UPLOAD_LIMIT = 100000000;     // 100 Million Bytes
         public const string WIN_WPCONTENT_ZIP_FILENAME = "wpcontent.zip";
         public const string WIN_MYSQL_ZIP_FILENAME = "mysqldata.zip";
@@ -30,7 +32,6 @@ namespace WordPressMigrationTool.Utilities
         public const string APPSETTING_DATABASE_NAME = "DATABASE_NAME";
         public const string APPSETTING_DATABASE_USERNAME = "DATABASE_USERNAME";
         public const string APPSETTING_DATABASE_PASSWORD = "DATABASE_PASSWORD";
-
 
         public const string LIN_APP_WP_CONFIG_PATH = "/home/site/wwwroot/wp-config.php";
         public const string LIN_APP_VERSIONPHP_FILE_PATH = "/home/site/wwwroot/wp-includes/version.php";
@@ -66,9 +67,9 @@ namespace WordPressMigrationTool.Utilities
         public const string MYSQL_DUMP_FILE_PATH_APP_SETTING = "MIGRATE_MYSQL_DUMP_PATH";
 
         public const string FIRST_TIME_SETUP_COMPLETETED_MESSAGE = "FIRST_TIME_SETUP_COMPLETED";
-        public const string DB_IMPORT_SUCCESS_MESSAGE = "MYSQL_DB_IMPORT_COMPLETED";
-        public const string DB_IMPORT_FAILURE_MESSAGE = "MYSQL_DB_IMPORT_FAILED";
-        public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/mysql/mysql_import_status.txt";
+        public const string IMPORT_SUCCESS_MESSAGE = "IMPORT_POST_PROCESSING_COMPLETED";
+        public const string IMPORT_FAILURE_MESSAGE = "IMPORT_POST_PROCESSING_FAILED";
+        public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/import_status.txt";
 
     }
 }
