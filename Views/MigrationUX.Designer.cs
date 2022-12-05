@@ -312,7 +312,7 @@ namespace WordPressMigrationTool
             this.linuxAppServiceComboBox.Size = new System.Drawing.Size(400, 33);
             this.linuxAppServiceComboBox.TabIndex = 14;
             this.linuxAppServiceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux App");
+            this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
             // 
             // flowLayoutPanel2
             // 

@@ -26,6 +26,8 @@ namespace WordPressMigrationTool
             InitializeComponent();
             this.progressViewUX = new ProgressUX();
             progressViewUX.Hide();
+
+            this.InitializeMigrationStatusFile();
         }
 
         public void InitializeBackgroundWorkers()
@@ -307,10 +309,135 @@ namespace WordPressMigrationTool
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
 
-            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox);
+            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>());
             ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
             this._childThread = new Thread(childref);
             this._childThread.Start();
+        }
+
+        private void InitializeMigrationStatusFile()
+        {
+            SiteInfo sourceSiteInfo = null;
+            SiteInfo destinationSiteInfo = null;
+            string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string statusFilePath = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
+            if (File.Exists(statusFilePath))
+            {
+                string[] statusMessages = File.ReadAllLines(statusFilePath);
+
+                if (this.isMigrationStatusFileValid(statusMessages, out sourceSiteInfo, out destinationSiteInfo))
+                {
+                    this.showResumeMigrationDialogBox(statusMessages, sourceSiteInfo, destinationSiteInfo);
+                    return;
+                }
+                else
+                {
+                    File.Delete(statusFilePath);
+                    File.Create(statusFilePath).Dispose();
+                    return;
+                }
+            }
+            else
+            {
+                File.Create(statusFilePath).Dispose();
+                return;
+            }
+        }
+
+        private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo)
+        {
+            const string message =
+            "Detected a previous unfinished migration.. Do you want to resume?";
+            const string caption = "Resume Previous Migration";
+            var result = MessageBox.Show(message, caption,
+                                         MessageBoxButtons.YesNo,
+                                         MessageBoxIcon.Question);
+
+            // If the yes button was pressed ...
+            if (result == DialogResult.Yes)
+            {
+                this.mainPanelTableLayout1.Hide();
+                this.migrateButton.Enabled = false;
+                this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
+                progressViewUX.Show();
+
+                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages);
+                ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
+                this._childThread = new Thread(childref);
+                this._childThread.Start();
+            }
+        }
+
+        private bool isMigrationStatusFileValid(string[] statusMessages, out SiteInfo sourceSiteInfo, out SiteInfo destinationSiteInfo)
+        {
+            string sourceSite = null;
+            string destinationSite = null;
+            string sourceResourceGroup = null;
+            string destinationResourceGroup = null;
+            string sourceSubscription = null;
+            string destinationSubscription = null;
+
+            foreach (string statusMsg in statusMessages)
+            {
+                if (statusMsg == Constants.StatusMessages.migrationFailed || statusMsg == Constants.StatusMessages.migrationCompleted)
+                {
+                    sourceSiteInfo = null;
+                    destinationSiteInfo = null;
+                    return false;
+                }
+                if (statusMsg.StartsWith(Constants.StatusMessages.sourceSiteName))
+                {
+                    sourceSite = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.destinationSiteName))
+                {
+                    destinationSite = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.sourceSiteResourceGroup))
+                {
+                    sourceResourceGroup = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.destinationSiteResourceGroup))
+                {
+                    destinationResourceGroup = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.sourceSiteSubscription))
+                {
+                    sourceSubscription = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.destinationSiteSubscription))
+                {
+                    destinationSubscription = statusMsg.Split()[4];
+                    continue;
+                }
+            }
+
+            if (String.IsNullOrEmpty(sourceSite) || String.IsNullOrEmpty(sourceResourceGroup) || String.IsNullOrEmpty(sourceSubscription) ||
+                String.IsNullOrEmpty(destinationSite) || String.IsNullOrEmpty(destinationResourceGroup) || String.IsNullOrEmpty(destinationSubscription))
+            {
+                sourceSiteInfo = null;
+                destinationSiteInfo = null;
+                return false;
+            }
+
+            sourceSiteInfo = new SiteInfo(sourceSubscription, sourceResourceGroup, sourceSite);
+            destinationSiteInfo = new SiteInfo(destinationSubscription, destinationResourceGroup, destinationSite);
+            return true;
         }
     }
 }

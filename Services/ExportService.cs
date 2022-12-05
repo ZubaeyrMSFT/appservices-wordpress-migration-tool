@@ -1,4 +1,5 @@
 ﻿using Azure.ResourceManager.AppService;
+using MySqlX.XDevAPI.Common;
 using System;
 using System.Diagnostics;
 using WordPressMigrationTool.Utilities;
@@ -8,17 +9,25 @@ namespace WordPressMigrationTool
     public class ExportService
     {
         private RichTextBox? _progressViewRTextBox;
+        private string[] _previousMigrationStatus;
 
         public ExportService() { }
 
-        public ExportService(RichTextBox? progressViewRTextBox)
+        public ExportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus)
         {
             this._progressViewRTextBox = progressViewRTextBox;
+            this._previousMigrationStatus = previousMigrationStatus;
         }
 
 
         public Result ExportDataFromSourceSite(SiteInfo sourceSite)
         {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
+            {
+                HelperUtils.WriteOutputWithNewLine("Source Site Data downloaded in previous migration.", this._progressViewRTextBox);
+                return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
+            }
+
             if (string.IsNullOrWhiteSpace(sourceSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -36,6 +45,9 @@ namespace WordPressMigrationTool
 
             try
             {
+
+                string migrationStatusFile = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
+
                 HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database details " +
                     "for Windows WordPress... ", this._progressViewRTextBox);
                 Stopwatch timer = Stopwatch.StartNew();
@@ -57,12 +69,14 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
-
+                System.Diagnostics.Debug.WriteLine("affter exoirt app data");
                 result = ExportDatbaseContent(sourceSite);
                 if (result.status == Status.Failed || result.status == Status.Cancelled)
                 {
                     return result;
                 }
+                System.Diagnostics.Debug.WriteLine("after export database data");
+                File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportCompleted + Environment.NewLine);
 
                 return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
 
@@ -75,17 +89,44 @@ namespace WordPressMigrationTool
 
         private Result ExportAppServiceData(SiteInfo sourceSite)
         {
+            string migrationStatusFile = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportAppDataCompleted))
+            {
+                HelperUtils.WriteOutputWithNewLine("Source Site App Data downloaded in previous migration.", this._progressViewRTextBox);
+                return new Result(Status.Completed, "App Service Data exported in previous migration attempt.");
+            }
+
             WindowsAppDataExportService winAppExpService = new WindowsAppDataExportService(sourceSite.webAppName,
                 sourceSite.ftpUsername, sourceSite.ftpPassword, this._progressViewRTextBox);
-            return winAppExpService.ExportData();
+
+            Result result = winAppExpService.ExportData();
+            if (result.status == Status.Completed)
+            {
+                System.Diagnostics.Debug.WriteLine("before appendall error");
+                File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportAppDataCompleted + Environment.NewLine);
+                System.Diagnostics.Debug.WriteLine("after appendall error");
+            }
+            return result;
         }
 
         private Result ExportDatbaseContent(SiteInfo sourceSite)
         {
+            string migrationStatusFile = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportDbDataCompleted))
+            {
+                HelperUtils.WriteOutputWithNewLine("Source Site Database Data downloaded in previous migration.", this._progressViewRTextBox);
+                return new Result(Status.Completed, "Database exported in previous migration attempt.");
+            }
+            System.Diagnostics.Debug.WriteLine("starting db export");
             WindowsMySQLDataExportService winDBExpService = new WindowsMySQLDataExportService(sourceSite.databaseHostname,
                 sourceSite.databaseUsername, sourceSite.databasePassword, sourceSite.databaseName, null, 
                 this._progressViewRTextBox);
-            return winDBExpService.ExportData();
+            Result result = winDBExpService.ExportData();
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportDbDataCompleted + Environment.NewLine);
+            }
+            return result;
         }
     }
 }

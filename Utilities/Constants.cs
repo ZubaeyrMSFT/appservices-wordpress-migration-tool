@@ -15,6 +15,7 @@ namespace WordPressMigrationTool.Utilities
         public const string WIN_APPSERVICE_DATA_EXPORT_PATH = DATA_EXPORT_PATH + WIN_WPCONTENT_ZIP_FILENAME;
         public const string WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_SQL_FILENAME;
         public const string WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_ZIP_FILENAME;
+        public const string MIGRATION_STATUSFILE_PATH = DATA_EXPORT_PATH + "migration_status.txt";
 
         public const int MAX_WIN_APPSERVICE_RETRIES = 3;
         public const int MAX_WIN_MYSQLDATA_RETRIES = 3;
@@ -71,5 +72,34 @@ namespace WordPressMigrationTool.Utilities
         public const string IMPORT_FAILURE_MESSAGE = "IMPORT_POST_PROCESSING_FAILED";
         public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/import_status.txt";
 
+        public static class StatusMessages
+        {
+            public const string sourceSiteName = "Source Site name : ";
+            public const string sourceSiteResourceGroup = "Source Site ResourceGroup : ";
+            public const string sourceSiteSubscription = "Source Site Subscription : ";
+            public const string destinationSiteName = "Destination Site Name : ";
+            public const string destinationSiteResourceGroup = "Destination Site ResourceGroup : ";
+            public const string destinationSiteSubscription = "Destination Site Subscription : ";
+            public const string migrationFailed = "MIGRATION_FAILED";
+            public const string migrationCompleted = "MIGRATION_COMPLETED";
+            public const string exportCompleted = "EXPORT_COMPLETED";
+            public const string importCompleted = "IMPORT_COMPLETED";
+            public const string exportAppDataCompleted = "EXPORT_APP_DATA_COMPLETED";
+            public const string exportDbDataCompleted = "EXPORT_DB_DATA_COMPLETED";
+            public const string clearImportFilesLocalDir = "CLEAR_LOCAL_FILES_IMPORT_DIR_COMPLETED";
+            public const string triggerDestinationSiteMigrationState = "TRIGGER_DESTINATION_SITE_MIGRATION_STATE";
+            public const string clearMigrationDirInDestinationSite = "CLEAR_MIGRATION_DIR_IN_DESTINATION_SITE_{0}_COMPLETED";
+            public const string validateWPRootDirInDestinationSite = "VALIDATED_WP_INSTALLATION_IN_DESTINATION_SITE";
+            public const string importAppServiceDataCompleted = "IMPORT_APP_SERVICE_DATA_COMPLETED";
+            public const string importDatabaseContentCompleted = "IMPORT_DATABASE_COMPLETED";
+            public const string updateDatabaseNameAppSetting = "UPDATED_DATABASE_NAME_APP_SETTING";
+            public const string postProcessingImportCompleted = "POST_PROCESSING_IMPORT_COMPLETED";
+            public const string splitWpContentZipCompleted = "SPLIT_WP_CONTENT_ZIP_COMPLETED";
+            public const string uploadAppDataSplitZipFilesCompleted = "UPLOAD_APP_DATA_SPLIT_ZIP_FILES_COMPLETED";
+            public const string uploadAppDataSplitZipFileCompleted = "UPLOADED_APP_DATA_SPLIT_ZIP_FILE_{0}";
+            public const string deleteAppDataSplitZipFilesInDestinationApp = "DELETE_APP_DATA_SPLIT_ZIP_FILES_IN_DESTINATION_APP";
+            public const string extractAppDataZipInDestinationApp = "EXTRACT_APP_DATA_ZIP_IN_DESTINATION_APP";
+            
+        }
     }
 }
