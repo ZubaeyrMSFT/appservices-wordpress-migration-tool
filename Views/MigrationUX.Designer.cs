@@ -3,12 +3,12 @@
     partial class MigrationUX
     {
         /// <summary>
-        /// Required designer variable.
+        ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        /// Clean up any resources being used.
+        ///  Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -23,303 +23,332 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        ///  Required method for Designer support - do not modify
+        ///  the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.textBox7 = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.textBox8 = new System.Windows.Forms.TextBox();
-            this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-            this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.flowLayoutPanel1.SuspendLayout();
-            this.groupBox1.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
-            this.tableLayoutPanel3.SuspendLayout();
-            this.tableLayoutPanel4.SuspendLayout();
+            this.mainFlowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.mainPanelTableLayout1 = new System.Windows.Forms.TableLayoutPanel();
+            this.windowsDetailsGroupBox = new System.Windows.Forms.GroupBox();
+            this.windowsDetailsTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            this.winSubscriptionIdLabel = new System.Windows.Forms.Label();
+            this.winResourceGroupNameLabel = new System.Windows.Forms.Label();
+            this.winAppServiceNameLabel = new System.Windows.Forms.Label();
+            this.winSubscriptionTextBox = new System.Windows.Forms.TextBox();
+            this.winResourceGroupTextBox = new System.Windows.Forms.TextBox();
+            this.winAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.linuxDetailsGroupBox = new System.Windows.Forms.GroupBox();
+            this.linuxDetailsTableLayout = new System.Windows.Forms.TableLayoutPanel();
+            this.linuxSubscriptionIdLabel = new System.Windows.Forms.Label();
+            this.linuxResourceGroupLabel = new System.Windows.Forms.Label();
+            this.linuxAppServiceNameLabel = new System.Windows.Forms.Label();
+            this.linuxSubscriptionIdTextBox = new System.Windows.Forms.TextBox();
+            this.linuxResourceGroupTextBox = new System.Windows.Forms.TextBox();
+            this.linuxAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
+            this.bottomTableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.bottomTableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.migrateButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
+            this.mainFlowLayoutPanel1.SuspendLayout();
+            this.mainPanelTableLayout1.SuspendLayout();
+            this.windowsDetailsGroupBox.SuspendLayout();
+            this.windowsDetailsTableLayout.SuspendLayout();
+            this.linuxDetailsGroupBox.SuspendLayout();
+            this.linuxDetailsTableLayout.SuspendLayout();
+            this.flowLayoutPanel2.SuspendLayout();
+            this.bottomTableLayoutPanel1.SuspendLayout();
+            this.bottomTableLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
             // 
-            // flowLayoutPanel1
+            // mainFlowLayoutPanel1
             // 
-            this.flowLayoutPanel1.Controls.Add(this.groupBox1);
-            this.flowLayoutPanel1.Controls.Add(this.groupBox2);
-            this.flowLayoutPanel1.Controls.Add(this.tableLayoutPanel3);
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(1, -1);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(581, 349);
-            this.flowLayoutPanel1.TabIndex = 0;
+            this.mainFlowLayoutPanel1.Controls.Add(this.mainPanelTableLayout1);
+            this.mainFlowLayoutPanel1.Location = new System.Drawing.Point(1, 2);
+            this.mainFlowLayoutPanel1.Name = "mainFlowLayoutPanel1";
+            this.mainFlowLayoutPanel1.Size = new System.Drawing.Size(454, 345);
+            this.mainFlowLayoutPanel1.TabIndex = 0;
             // 
-            // groupBox1
+            // mainPanelTableLayout1
             // 
-            this.groupBox1.Controls.Add(this.tableLayoutPanel1);
-            this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.groupBox1.Location = new System.Drawing.Point(7, 8);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(554, 138);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Source Site (Windows App Service)";
+            this.mainPanelTableLayout1.ColumnCount = 1;
+            this.mainPanelTableLayout1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.mainPanelTableLayout1.Controls.Add(this.windowsDetailsGroupBox, 0, 0);
+            this.mainPanelTableLayout1.Controls.Add(this.linuxDetailsGroupBox, 0, 1);
+            this.mainPanelTableLayout1.Location = new System.Drawing.Point(3, 3);
+            this.mainPanelTableLayout1.Name = "mainPanelTableLayout1";
+            this.mainPanelTableLayout1.RowCount = 2;
+            this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.mainPanelTableLayout1.Size = new System.Drawing.Size(451, 342);
+            this.mainPanelTableLayout1.TabIndex = 0;
             // 
-            // tableLayoutPanel1
+            // windowsDetailsGroupBox
             // 
-            this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 38.78205F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 61.21795F));
-            this.tableLayoutPanel1.Controls.Add(this.textBox3, 1, 2);
-            this.tableLayoutPanel1.Controls.Add(this.textBox2, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.label3, 0, 2);
-            this.tableLayoutPanel1.Controls.Add(this.textBox1, 1, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(7, 34);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 4;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.64103F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(552, 93);
-            this.tableLayoutPanel1.TabIndex = 0;
+            this.windowsDetailsGroupBox.Controls.Add(this.windowsDetailsTableLayout);
+            this.windowsDetailsGroupBox.Location = new System.Drawing.Point(3, 3);
+            this.windowsDetailsGroupBox.Name = "windowsDetailsGroupBox";
+            this.windowsDetailsGroupBox.Size = new System.Drawing.Size(441, 165);
+            this.windowsDetailsGroupBox.TabIndex = 0;
+            this.windowsDetailsGroupBox.TabStop = false;
+            this.windowsDetailsGroupBox.Text = "Source Site (Windows App Service)";
             // 
-            // textBox3
+            // windowsDetailsTableLayout
             // 
-            this.textBox3.Location = new System.Drawing.Point(217, 64);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(247, 20);
-            this.textBox3.TabIndex = 6;
+            this.windowsDetailsTableLayout.ColumnCount = 2;
+            this.windowsDetailsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.windowsDetailsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionIdLabel, 0, 0);
+            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupNameLabel, 0, 1);
+            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceNameLabel, 0, 2);
+            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionTextBox, 1, 0);
+            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupTextBox, 1, 1);
+            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceTextBox, 1, 2);
+            this.windowsDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
+            this.windowsDetailsTableLayout.Name = "windowsDetailsTableLayout";
+            this.windowsDetailsTableLayout.RowCount = 3;
+            this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.windowsDetailsTableLayout.Size = new System.Drawing.Size(426, 113);
+            this.windowsDetailsTableLayout.TabIndex = 0;
             // 
-            // textBox2
+            // winSubscriptionIdLabel
             // 
-            this.textBox2.Location = new System.Drawing.Point(217, 34);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(247, 20);
-            this.textBox2.TabIndex = 5;
+            this.winSubscriptionIdLabel.AutoSize = true;
+            this.winSubscriptionIdLabel.Location = new System.Drawing.Point(3, 0);
+            this.winSubscriptionIdLabel.Name = "winSubscriptionIdLabel";
+            this.winSubscriptionIdLabel.Size = new System.Drawing.Size(86, 15);
+            this.winSubscriptionIdLabel.TabIndex = 0;
+            this.winSubscriptionIdLabel.Text = "Subscription Id";
             // 
-            // label1
+            // winResourceGroupNameLabel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(77, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Subscription Id";
+            this.winResourceGroupNameLabel.AutoSize = true;
+            this.winResourceGroupNameLabel.Location = new System.Drawing.Point(3, 37);
+            this.winResourceGroupNameLabel.Name = "winResourceGroupNameLabel";
+            this.winResourceGroupNameLabel.Size = new System.Drawing.Size(91, 15);
+            this.winResourceGroupNameLabel.TabIndex = 1;
+            this.winResourceGroupNameLabel.Text = "Resource Group";
             // 
-            // label2
+            // winAppServiceNameLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 31);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(85, 13);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Resource Group";
+            this.winAppServiceNameLabel.AutoSize = true;
+            this.winAppServiceNameLabel.Location = new System.Drawing.Point(3, 74);
+            this.winAppServiceNameLabel.Name = "winAppServiceNameLabel";
+            this.winAppServiceNameLabel.Size = new System.Drawing.Size(104, 15);
+            this.winAppServiceNameLabel.TabIndex = 2;
+            this.winAppServiceNameLabel.Text = "App Service Name";
             // 
-            // label3
+            // winSubscriptionTextBox
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 61);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(65, 13);
-            this.label3.TabIndex = 2;
-            this.label3.Text = "App Service";
+            this.winSubscriptionTextBox.Location = new System.Drawing.Point(130, 3);
+            this.winSubscriptionTextBox.Name = "winSubscriptionTextBox";
+            this.winSubscriptionTextBox.Size = new System.Drawing.Size(281, 23);
+            this.winSubscriptionTextBox.TabIndex = 3;
             // 
-            // textBox1
+            // winResourceGroupTextBox
             // 
-            this.textBox1.Location = new System.Drawing.Point(217, 3);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(247, 20);
-            this.textBox1.TabIndex = 4;
+            this.winResourceGroupTextBox.Location = new System.Drawing.Point(130, 40);
+            this.winResourceGroupTextBox.Name = "winResourceGroupTextBox";
+            this.winResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
+            this.winResourceGroupTextBox.TabIndex = 4;
             // 
-            // groupBox2
+            // winAppServiceTextBox
             // 
-            this.groupBox2.Controls.Add(this.tableLayoutPanel2);
-            this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
-            this.groupBox2.Location = new System.Drawing.Point(7, 152);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(554, 138);
-            this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Destination Site (Linux App Service)";
+            this.winAppServiceTextBox.Location = new System.Drawing.Point(130, 77);
+            this.winAppServiceTextBox.Name = "winAppServiceTextBox";
+            this.winAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
+            this.winAppServiceTextBox.TabIndex = 5;
             // 
-            // tableLayoutPanel2
+            // linuxDetailsGroupBox
             // 
-            this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 38.78205F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 61.21795F));
-            this.tableLayoutPanel2.Controls.Add(this.textBox4, 1, 2);
-            this.tableLayoutPanel2.Controls.Add(this.label4, 0, 2);
-            this.tableLayoutPanel2.Controls.Add(this.textBox7, 1, 1);
-            this.tableLayoutPanel2.Controls.Add(this.label5, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.label6, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.textBox8, 1, 0);
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(7, 35);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 3;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 31F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 34F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(552, 97);
-            this.tableLayoutPanel2.TabIndex = 0;
+            this.linuxDetailsGroupBox.Controls.Add(this.linuxDetailsTableLayout);
+            this.linuxDetailsGroupBox.Location = new System.Drawing.Point(3, 174);
+            this.linuxDetailsGroupBox.Name = "linuxDetailsGroupBox";
+            this.linuxDetailsGroupBox.Size = new System.Drawing.Size(441, 165);
+            this.linuxDetailsGroupBox.TabIndex = 1;
+            this.linuxDetailsGroupBox.TabStop = false;
+            this.linuxDetailsGroupBox.Text = "Destination Site (Linux App Service)";
             // 
-            // textBox4
+            // linuxDetailsTableLayout
             // 
-            this.textBox4.Location = new System.Drawing.Point(217, 66);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(247, 20);
-            this.textBox4.TabIndex = 7;
+            this.linuxDetailsTableLayout.ColumnCount = 2;
+            this.linuxDetailsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 30F));
+            this.linuxDetailsTableLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdLabel, 0, 0);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupLabel, 0, 1);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceNameLabel, 0, 2);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdTextBox, 1, 0);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupTextBox, 1, 1);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceTextBox, 1, 2);
+            this.linuxDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
+            this.linuxDetailsTableLayout.Name = "linuxDetailsTableLayout";
+            this.linuxDetailsTableLayout.RowCount = 3;
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.linuxDetailsTableLayout.Size = new System.Drawing.Size(426, 125);
+            this.linuxDetailsTableLayout.TabIndex = 0;
             // 
-            // label4
+            // linuxSubscriptionIdLabel
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 63);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(96, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "App Service Name";
+            this.linuxSubscriptionIdLabel.AutoSize = true;
+            this.linuxSubscriptionIdLabel.Location = new System.Drawing.Point(3, 0);
+            this.linuxSubscriptionIdLabel.Name = "linuxSubscriptionIdLabel";
+            this.linuxSubscriptionIdLabel.Size = new System.Drawing.Size(86, 15);
+            this.linuxSubscriptionIdLabel.TabIndex = 0;
+            this.linuxSubscriptionIdLabel.Text = "Subscription Id";
             // 
-            // textBox7
+            // linuxResourceGroupLabel
             // 
-            this.textBox7.Location = new System.Drawing.Point(217, 34);
-            this.textBox7.Name = "textBox7";
-            this.textBox7.Size = new System.Drawing.Size(247, 20);
-            this.textBox7.TabIndex = 5;
+            this.linuxResourceGroupLabel.AutoSize = true;
+            this.linuxResourceGroupLabel.Location = new System.Drawing.Point(3, 41);
+            this.linuxResourceGroupLabel.Name = "linuxResourceGroupLabel";
+            this.linuxResourceGroupLabel.Size = new System.Drawing.Size(91, 15);
+            this.linuxResourceGroupLabel.TabIndex = 1;
+            this.linuxResourceGroupLabel.Text = "Resource Group";
             // 
-            // label5
+            // linuxAppServiceNameLabel
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(77, 13);
-            this.label5.TabIndex = 0;
-            this.label5.Text = "Subscription Id";
+            this.linuxAppServiceNameLabel.AutoSize = true;
+            this.linuxAppServiceNameLabel.Location = new System.Drawing.Point(3, 82);
+            this.linuxAppServiceNameLabel.Name = "linuxAppServiceNameLabel";
+            this.linuxAppServiceNameLabel.Size = new System.Drawing.Size(104, 15);
+            this.linuxAppServiceNameLabel.TabIndex = 2;
+            this.linuxAppServiceNameLabel.Text = "App Service Name";
             // 
-            // label6
+            // linuxSubscriptionIdTextBox
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 31);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(85, 13);
-            this.label6.TabIndex = 1;
-            this.label6.Text = "Resource Group";
+            this.linuxSubscriptionIdTextBox.Location = new System.Drawing.Point(130, 3);
+            this.linuxSubscriptionIdTextBox.Name = "linuxSubscriptionIdTextBox";
+            this.linuxSubscriptionIdTextBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxSubscriptionIdTextBox.TabIndex = 3;
             // 
-            // textBox8
+            // linuxResourceGroupTextBox
             // 
-            this.textBox8.Location = new System.Drawing.Point(217, 3);
-            this.textBox8.Name = "textBox8";
-            this.textBox8.Size = new System.Drawing.Size(247, 20);
-            this.textBox8.TabIndex = 4;
+            this.linuxResourceGroupTextBox.Location = new System.Drawing.Point(130, 44);
+            this.linuxResourceGroupTextBox.Name = "linuxResourceGroupTextBox";
+            this.linuxResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxResourceGroupTextBox.TabIndex = 4;
             // 
-            // tableLayoutPanel3
+            // linuxAppServiceTextBox
             // 
-            this.tableLayoutPanel3.ColumnCount = 2;
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel3.Controls.Add(this.tableLayoutPanel4, 1, 0);
-            this.tableLayoutPanel3.Location = new System.Drawing.Point(7, 296);
-            this.tableLayoutPanel3.Name = "tableLayoutPanel3";
-            this.tableLayoutPanel3.RowCount = 1;
-            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(559, 46);
-            this.tableLayoutPanel3.TabIndex = 2;
+            this.linuxAppServiceTextBox.Location = new System.Drawing.Point(130, 85);
+            this.linuxAppServiceTextBox.Name = "linuxAppServiceTextBox";
+            this.linuxAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
+            this.linuxAppServiceTextBox.TabIndex = 5;
             // 
-            // tableLayoutPanel4
+            // flowLayoutPanel2
             // 
-            this.tableLayoutPanel4.ColumnCount = 2;
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49.5082F));
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.4918F));
-            this.tableLayoutPanel4.Controls.Add(this.button2, 1, 0);
-            this.tableLayoutPanel4.Controls.Add(this.button1, 0, 0);
-            this.tableLayoutPanel4.Location = new System.Drawing.Point(282, 3);
-            this.tableLayoutPanel4.Name = "tableLayoutPanel4";
-            this.tableLayoutPanel4.RowCount = 1;
-            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel4.Size = new System.Drawing.Size(274, 40);
-            this.tableLayoutPanel4.TabIndex = 0;
+            this.flowLayoutPanel2.Controls.Add(this.bottomTableLayoutPanel1);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(1, 346);
+            this.flowLayoutPanel2.Name = "flowLayoutPanel2";
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(454, 50);
+            this.flowLayoutPanel2.TabIndex = 1;
             // 
-            // button2
+            // bottomTableLayoutPanel1
             // 
-            this.button2.Location = new System.Drawing.Point(138, 3);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(133, 34);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Cancel";
-            this.button2.UseVisualStyleBackColor = true;
+            this.bottomTableLayoutPanel1.ColumnCount = 2;
+            this.bottomTableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.bottomTableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.bottomTableLayoutPanel1.Controls.Add(this.bottomTableLayoutPanel2, 1, 0);
+            this.bottomTableLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.bottomTableLayoutPanel1.Name = "bottomTableLayoutPanel1";
+            this.bottomTableLayoutPanel1.RowCount = 1;
+            this.bottomTableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.bottomTableLayoutPanel1.Size = new System.Drawing.Size(451, 46);
+            this.bottomTableLayoutPanel1.TabIndex = 0;
             // 
-            // button1
+            // bottomTableLayoutPanel2
             // 
-            this.button1.Location = new System.Drawing.Point(3, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(129, 34);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Migrate";
-            this.button1.UseVisualStyleBackColor = true;
+            this.bottomTableLayoutPanel2.ColumnCount = 3;
+            this.bottomTableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.bottomTableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.bottomTableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.bottomTableLayoutPanel2.Controls.Add(this.migrateButton, 1, 0);
+            this.bottomTableLayoutPanel2.Controls.Add(this.cancelButton, 2, 0);
+            this.bottomTableLayoutPanel2.Location = new System.Drawing.Point(228, 3);
+            this.bottomTableLayoutPanel2.Name = "bottomTableLayoutPanel2";
+            this.bottomTableLayoutPanel2.RowCount = 1;
+            this.bottomTableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.bottomTableLayoutPanel2.Size = new System.Drawing.Size(220, 40);
+            this.bottomTableLayoutPanel2.TabIndex = 0;
+            // 
+            // migrateButton
+            // 
+            this.migrateButton.Location = new System.Drawing.Point(76, 3);
+            this.migrateButton.Name = "migrateButton";
+            this.migrateButton.Size = new System.Drawing.Size(67, 34);
+            this.migrateButton.TabIndex = 0;
+            this.migrateButton.Text = "Migrate";
+            this.migrateButton.UseVisualStyleBackColor = true;
+            this.migrateButton.Click += new System.EventHandler(this.migrateButton_Click);
+            // 
+            // cancelButton
+            // 
+            this.cancelButton.Location = new System.Drawing.Point(149, 3);
+            this.cancelButton.Name = "cancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(68, 34);
+            this.cancelButton.TabIndex = 1;
+            this.cancelButton.Text = "Cancel";
+            this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
             // MigrationUX
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(573, 349);
-            this.Controls.Add(this.flowLayoutPanel1);
-            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ClientSize = new System.Drawing.Size(459, 396);
+            this.Controls.Add(this.flowLayoutPanel2);
+            this.Controls.Add(this.mainFlowLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "MigrationUX";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "WordPress Migration Tool (Azure App Services)";
-            this.flowLayoutPanel1.ResumeLayout(false);
-            this.groupBox1.ResumeLayout(false);
-            this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
-            this.tableLayoutPanel3.ResumeLayout(false);
-            this.tableLayoutPanel4.ResumeLayout(false);
+            this.mainFlowLayoutPanel1.ResumeLayout(false);
+            this.mainPanelTableLayout1.ResumeLayout(false);
+            this.windowsDetailsGroupBox.ResumeLayout(false);
+            this.windowsDetailsTableLayout.ResumeLayout(false);
+            this.windowsDetailsTableLayout.PerformLayout();
+            this.linuxDetailsGroupBox.ResumeLayout(false);
+            this.linuxDetailsTableLayout.ResumeLayout(false);
+            this.linuxDetailsTableLayout.PerformLayout();
+            this.flowLayoutPanel2.ResumeLayout(false);
+            this.bottomTableLayoutPanel1.ResumeLayout(false);
+            this.bottomTableLayoutPanel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.TextBox textBox3;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-        private System.Windows.Forms.TextBox textBox7;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox textBox8;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox textBox4;
-        private System.Windows.Forms.Label label4;
+        private FlowLayoutPanel mainFlowLayoutPanel1;
+        private FlowLayoutPanel flowLayoutPanel2;
+        private TableLayoutPanel bottomTableLayoutPanel1;
+        private TableLayoutPanel bottomTableLayoutPanel2;
+        private Button migrateButton;
+        private Button cancelButton;
+        private TableLayoutPanel mainPanelTableLayout1;
+        private GroupBox windowsDetailsGroupBox;
+        private GroupBox linuxDetailsGroupBox;
+        private TableLayoutPanel windowsDetailsTableLayout;
+        private Label winSubscriptionIdLabel;
+        private Label winResourceGroupNameLabel;
+        private Label winAppServiceNameLabel;
+        private TextBox winSubscriptionTextBox;
+        private TextBox winResourceGroupTextBox;
+        private TextBox winAppServiceTextBox;
+        private TableLayoutPanel linuxDetailsTableLayout;
+        private Label linuxSubscriptionIdLabel;
+        private Label linuxResourceGroupLabel;
+        private Label linuxAppServiceNameLabel;
+        private TextBox linuxSubscriptionIdTextBox;
+        private TextBox linuxResourceGroupTextBox;
+        private TextBox linuxAppServiceTextBox;
     }
 }
-

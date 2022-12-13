@@ -14,7 +14,7 @@ namespace WordPressMigrationTool
         private string _ftpPassword;
         private string _appServiceName;
         private bool _result = false;
-        private string _message = null;
+        private string _message = "";
         private int _retriesCount = 0;
         private long _lastCheckpointCountForDisplay = 0;
         private readonly SemaphoreSlim _downloadLock = new SemaphoreSlim(0);
@@ -44,13 +44,13 @@ namespace WordPressMigrationTool
             this._ftpPassword = ftpPassword; 
         }
 
-        public Result exportData()
+        public Result ExportData()
         {
-            string appServiceKuduURL = HelperUtils.getKuduApiForZipDownload(this._appServiceName);
+            string appServiceKuduURL = HelperUtils.GetKuduApiForZipDownload(this._appServiceName);
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             string outputFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
 
-            Console.WriteLine("Exporting App Service data to " + outputFilePath);
+            Console.WriteLine("Exporting Windows App Service data to " + outputFilePath);
             Stopwatch timer = Stopwatch.StartNew();
 
 
@@ -62,7 +62,7 @@ namespace WordPressMigrationTool
 
             while (this._retriesCount <= Constants.MAX_WIN_APPSERVICE_RETRIES)
             {
-                HelperUtils.deleteFileIfExists(outputFilePath);
+                HelperUtils.DeleteFileIfExists(outputFilePath);
 
                 using (var client = new WebClient())
                 {
@@ -77,12 +77,14 @@ namespace WordPressMigrationTool
                         this._retriesCount++;
                         if (this._retriesCount > Constants.MAX_WIN_APPSERVICE_RETRIES)
                         {
-                            HelperUtils.deleteFileIfExists(outputFilePath);
+                            timer.Stop();
+                            Console.WriteLine("Unable to export Windows App Service data... time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
+                            HelperUtils.DeleteFileIfExists(outputFilePath);
                             return new Result(Status.Failed, this._message);
                         }
                         else
                         {
-                            Console.WriteLine("Retrying App Service data download... " + this._retriesCount);
+                            Console.WriteLine("Retrying Windows App Service data download... " + this._retriesCount);
                             continue;
                         }
                     }
@@ -90,11 +92,12 @@ namespace WordPressMigrationTool
                 }
             }
 
-            Console.WriteLine("Sucessfully exported App Service data... Time Taken={0} seconds", (timer.ElapsedMilliseconds / 1000));
+            timer.Stop();
+            Console.WriteLine("Sucessfully exported Windows App Service data... time taken={0} seconds\n", (timer.ElapsedMilliseconds / 1000));
             return new Result(Status.Completed, this._message);
         }
 
-        private void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        private void Client_DownloadFileCompleted(object? sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
             if (e.Error != null)
             {
@@ -131,13 +134,13 @@ namespace WordPressMigrationTool
 
             if (e.TotalBytesToReceive != -1 && e.BytesReceived == e.TotalBytesToReceive)
             {
-                Console.WriteLine("Download Progres - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) 
-                    + " MB received out of " + String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB)) + " MB");
+                Console.Write("\rDownload completed - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) 
+                    + " MB received out of " + String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB)) + " MB\n");
             }
             else if (e.BytesReceived  - this._lastCheckpointCountForDisplay >= displayWindowSize)
             {
                 this._lastCheckpointCountForDisplay = e.BytesReceived;
-                Console.WriteLine("Download Progress - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) + " MB received out of " 
+                Console.Write("\rDownload progress - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) + " MB received out of " 
                     + ((e.TotalBytesToReceive == -1) ? "NA" : String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB))) + " MB");
             }
         }
