@@ -19,15 +19,8 @@ namespace WordPressMigrationTool
             this._previousMigrationStatus = previousMigrationStatus;
         }
 
-
         public Result ExportDataFromSourceSite(SiteInfo sourceSite)
         {
-            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
-            {
-                HelperUtils.WriteOutputWithNewLine("Source Site Data downloaded in previous migration.", this._progressViewRTextBox);
-                return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
-            }
-
             if (string.IsNullOrWhiteSpace(sourceSite.subscriptionId))
             {
                 return new Result(Status.Failed, "Subscription Id should not be empty!");
@@ -59,25 +52,32 @@ namespace WordPressMigrationTool
                 sourceSite.ftpUsername = publishingProfile.PublishingUserName;
                 sourceSite.ftpPassword = publishingProfile.PublishingPassword;
 
+                if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
+                {
+                    HelperUtils.WriteOutputWithNewLine("Source Site Data downloaded in previous migration.", this._progressViewRTextBox);
+                    return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
+                }
+
                 HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken=" + (timer.ElapsedMilliseconds / 1000) 
                     + " seconds\n", this._progressViewRTextBox);
                 timer.Stop();
-
 
                 Result result = ExportAppServiceData(sourceSite);
                 if (result.status == Status.Failed || result.status == Status.Cancelled)
                 {
                     return result;
                 }
-                System.Diagnostics.Debug.WriteLine("affter exoirt app data");
+                System.Diagnostics.Debug.WriteLine("after export app data");
                 result = ExportDatbaseContent(sourceSite);
                 if (result.status == Status.Failed || result.status == Status.Cancelled)
                 {
                     return result;
                 }
                 System.Diagnostics.Debug.WriteLine("after export database data");
-                File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportCompleted + Environment.NewLine);
-
+                if (!this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
+                {
+                    File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportCompleted + Environment.NewLine);
+                }
                 return new Result(Status.Completed, Constants.SUCCESS_EXPORT_MESSAGE);
 
             } 

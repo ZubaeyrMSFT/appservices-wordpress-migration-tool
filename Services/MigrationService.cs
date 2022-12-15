@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic;
+﻿using Azure.ResourceManager.AppService;
+using Microsoft.VisualBasic;
 using System;
 using WordPressMigrationTool.Utilities;
 using Constants = WordPressMigrationTool.Utilities.Constants;
@@ -30,6 +31,9 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
+                this.GetSourceSiteInfo();
+                this.GetDestinationSiteInfo();
+
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
 
@@ -38,7 +42,7 @@ namespace WordPressMigrationTool
                 {
                     return exporttRes;
                 }
-
+                System.Diagnostics.Debug.WriteLine("database name before import is : ", this._sourceSiteInfo.databaseName);
                 Result importRes = importService.ImportDataToDestinationSite(this._destinationSiteInfo, this._sourceSiteInfo.databaseName);
                 if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
                 {
@@ -57,6 +61,29 @@ namespace WordPressMigrationTool
             catch (Exception ex) {
                 return new Result(Status.Failed, ex.Message);
             }
+        }
+
+        private void GetSourceSiteInfo()
+        {
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName);
+            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+            string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
+            HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
+            this._sourceSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
+            this._sourceSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+        }
+
+        private void GetDestinationSiteInfo()
+        {
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName);
+            IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+
+            this._destinationSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
+            this._destinationSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+            this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
+            this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
+            this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
         }
 
         private Result InitializeMigrationStatusFile()
@@ -93,6 +120,14 @@ namespace WordPressMigrationTool
             {
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
+
+                // logs Migration status
+                string logMessage = String.Format("WPMigrationTool ({0}, {1}, {2}, {3}, {4}, {5}, {6}), {7})", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
+                    this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
+                    this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
+
+                this.LogMigrationStatusMessage(logMessage);
+                
                 if (res.status == Status.Failed || res.status == Status.Cancelled)
                 {
                     MessageBox.Show(res.message, "Failed!");
@@ -107,6 +142,11 @@ namespace WordPressMigrationTool
                 HelperUtils.WriteOutputWithNewLine(ex.Message, this._progressViewRTextBox);
                 MessageBox.Show(ex.Message, "Failed!");
             }
+        }
+
+        private void LogMigrationStatusMessage(string logMessage)
+        {
+            HelperUtils.ExecuteKuduCommandApi(String.Format(Constants.LIST_DIR_COMMAND, "/home"), this._destinationSiteInfo.ftpUsername, this._destinationSiteInfo.ftpPassword, this._destinationSiteInfo.webAppName, message: logMessage);
         }
 
         private void CleanLocalTempFiles()

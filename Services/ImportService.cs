@@ -205,6 +205,9 @@ namespace WordPressMigrationTool
 
             Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, 
                 destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
+
+            System.Diagnostics.Debug.WriteLine("clear migration dir after clearappservicedirectory..");
+
             if (result.status == Status.Completed)
             {
                 File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.clearMigrationDirInDestinationSite, callOrder) + Environment.NewLine);

@@ -27,6 +27,7 @@ namespace WordPressMigrationTool
             this.progressViewUX = new ProgressUX();
             progressViewUX.Hide();
 
+            this.Show();
             this.InitializeMigrationStatusFile();
         }
 
@@ -366,6 +367,7 @@ namespace WordPressMigrationTool
                 this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
                 progressViewUX.Show();
 
+                System.Diagnostics.Debug.WriteLine("sourcesite name is |" + sourceSiteInfo.webAppName + "|");
                 MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
