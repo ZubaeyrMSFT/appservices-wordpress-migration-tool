@@ -43,10 +43,6 @@ namespace WordPressMigrationTool
 
         public Result ImportData()
         {
-            string uploadWpContentKuduUrl = HelperUtils.GetKuduApiForZipUpload(this._appServiceName, "site/wwwroot/wp-content");
-            string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
-            string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
-
             Stopwatch timer = Stopwatch.StartNew();
             HelperUtils.WriteOutputWithNewLine("Preparing to upload App data to the destination site...", this._progressViewRTextBox);
             

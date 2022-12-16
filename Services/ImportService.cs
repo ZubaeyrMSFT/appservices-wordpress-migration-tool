@@ -45,19 +45,9 @@ namespace WordPressMigrationTool
 
             try
             {
-                HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database " 
-                    + "details for Linux WordPress... ", this._progressViewRTextBox);
                 Stopwatch timer = Stopwatch.StartNew();
 
                 webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
-                IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
-                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-
-                destinationSite.ftpUsername = publishingProfile.PublishingUserName;
-                destinationSite.ftpPassword = publishingProfile.PublishingPassword;
-                destinationSite.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
-                destinationSite.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
-                destinationSite.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
                 destinationSite.databaseName = newDatabaseName;
 
                 HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken="

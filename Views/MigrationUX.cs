@@ -359,7 +359,6 @@ namespace WordPressMigrationTool
                                          MessageBoxButtons.YesNo,
                                          MessageBoxIcon.Question);
 
-            // If the yes button was pressed ...
             if (result == DialogResult.Yes)
             {
                 this.mainPanelTableLayout1.Hide();

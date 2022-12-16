@@ -41,16 +41,9 @@ namespace WordPressMigrationTool
 
                 string migrationStatusFile = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
 
-                HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database details " +
-                    "for Windows WordPress... ", this._progressViewRTextBox);
                 Stopwatch timer = Stopwatch.StartNew();
 
                 WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(sourceSite.subscriptionId, sourceSite.resourceGroupName, sourceSite.webAppName);
-                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-                string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
-                HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(sourceSite, databaseConnectionString);
-                sourceSite.ftpUsername = publishingProfile.PublishingUserName;
-                sourceSite.ftpPassword = publishingProfile.PublishingPassword;
 
                 if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
                 {

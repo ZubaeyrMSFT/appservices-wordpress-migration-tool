@@ -8,7 +8,6 @@ namespace WordPressMigrationTool
 {
     public class MigrationService
     {
-
         private SiteInfo _sourceSiteInfo;
         private SiteInfo _destinationSiteInfo;
         private RichTextBox? _progressViewRTextBox;
@@ -31,11 +30,27 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
-                this.GetSourceSiteInfo();
-                this.GetDestinationSiteInfo();
+                result = this.GetSourceSiteInfo();
+                if (result.status != Status.Completed)
+                {
+                    return result;
+                }
 
+                result = this.GetDestinationSiteInfo();
+                if (result.status != Status.Completed)
+                {
+                    return result;
+                }
+
+                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
+
+                Result validationRes = validationService.ValidateMigrationInput(this._sourceSiteInfo, this._destinationSiteInfo);
+                if (validationRes.status != Status.Completed)
+                {
+                    return validationRes;
+                }
 
                 Result exporttRes = exportService.ExportDataFromSourceSite(this._sourceSiteInfo);
                 if (exporttRes.status == Status.Failed || exporttRes.status == Status.Cancelled)
@@ -63,27 +78,49 @@ namespace WordPressMigrationTool
             }
         }
 
-        private void GetSourceSiteInfo()
+        private Result GetSourceSiteInfo()
         {
-            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName);
-            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
-            string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
-            HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
-            this._sourceSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
-            this._sourceSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+            HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database details " +
+                    "for Windows WordPress... ", this._progressViewRTextBox);
+            try
+            {
+                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName);
+                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+                string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
+                HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
+                this._sourceSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
+                this._sourceSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+
+                return new Result(Status.Completed, "");
+            }
+            catch
+            {
+                return new Result(Status.Failed, "Could not retrieve publishing profile and database connection string of " + this._sourceSiteInfo.webAppName + " appservice.");
+            }
         }
 
-        private void GetDestinationSiteInfo()
+        private Result GetDestinationSiteInfo()
         {
-            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName);
-            IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
-            PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+            HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database "
+                    + "details for Linux WordPress... ", this._progressViewRTextBox);
+            try
+            {
+                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName);
+                IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
 
-            this._destinationSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
-            this._destinationSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
-            this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
-            this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
-            this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+                this._destinationSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
+                this._destinationSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+                this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
+                this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
+                this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+
+                return new Result(Status.Completed, "");
+            }
+            catch
+            {
+                return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice.");
+            }
         }
 
         private Result InitializeMigrationStatusFile()
@@ -121,11 +158,11 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                // logs Migration status
                 string logMessage = String.Format("WPMigrationTool ({0}, {1}, {2}, {3}, {4}, {5}, {6}), {7})", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
+                // logs Migration status
                 this.LogMigrationStatusMessage(logMessage);
                 
                 if (res.status == Status.Failed || res.status == Status.Cancelled)
