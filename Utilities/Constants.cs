@@ -12,11 +12,14 @@ namespace WordPressMigrationTool.Utilities
         public const string WIN_MYSQL_ZIP_FILENAME = "mysqldata.zip";
         public const string WIN_MYSQL_SQL_FILENAME = "mysqldata.sql";
 
+        public const string WP_UPLOADS_PREFIX = "uploads/";
+
         public const string DATA_EXPORT_PATH = "%userprofile%\\AppData\\Local\\WordPressMigration\\";
         public const string WIN_APPSERVICE_DATA_EXPORT_PATH = DATA_EXPORT_PATH + WIN_WPCONTENT_ZIP_FILENAME;
         public const string WIN_MYSQL_DATA_EXPORT_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_SQL_FILENAME;
         public const string WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH = DATA_EXPORT_PATH + WIN_MYSQL_ZIP_FILENAME;
         public const string MIGRATION_STATUSFILE_PATH = DATA_EXPORT_PATH + "migration_status.txt";
+        public const string BLOB_UPLOAD_FILE_PATH = DATA_EXPORT_PATH + "blobUploadPath\\";
 
         public const int MAX_WIN_APPSERVICE_RETRIES = 3;
         public const int MAX_WIN_MYSQLDATA_RETRIES = 3;
@@ -34,6 +37,11 @@ namespace WordPressMigrationTool.Utilities
         public const string APPSETTING_DATABASE_NAME = "DATABASE_NAME";
         public const string APPSETTING_DATABASE_USERNAME = "DATABASE_USERNAME";
         public const string APPSETTING_DATABASE_PASSWORD = "DATABASE_PASSWORD";
+        public const string APPSETTING_BLOB_STORAGE_ENABLED = "BLOB_STORAGE_ENABLED";
+        public const string APPSETTING_BLOB_CONTAINER_NAME = "BLOB_CONTAINER_NAME";
+        public const string APPSETTING_STORAGE_ACCOUNT_NAME = "STORAGE_ACCOUNT_NAME";
+        public const string APPSETTING_STORAGE_ACCOUNT_KEY = "STORAGE_ACCOUNT_KEY";
+
 
         public const string LIN_APP_WP_CONFIG_PATH = "/home/site/wwwroot/wp-config.php";
         public const string LIN_APP_VERSIONPHP_FILE_PATH = "/home/site/wwwroot/wp-includes/version.php";
@@ -81,6 +89,7 @@ namespace WordPressMigrationTool.Utilities
             public const string destinationSiteName = "Destination Site Name : ";
             public const string destinationSiteResourceGroup = "Destination Site ResourceGroup : ";
             public const string destinationSiteSubscription = "Destination Site Subscription : ";
+            public const string previousMigrationBlobContainerName = "Previous Migration Blob Container : ";
             public const string migrationFailed = "MIGRATION_FAILED";
             public const string migrationCompleted = "MIGRATION_COMPLETED";
             public const string exportCompleted = "EXPORT_COMPLETED";
@@ -100,7 +109,11 @@ namespace WordPressMigrationTool.Utilities
             public const string uploadAppDataSplitZipFileCompleted = "UPLOADED_APP_DATA_SPLIT_ZIP_FILE_{0}";
             public const string deleteAppDataSplitZipFilesInDestinationApp = "DELETE_APP_DATA_SPLIT_ZIP_FILES_IN_DESTINATION_APP";
             public const string extractAppDataZipInDestinationApp = "EXTRACT_APP_DATA_ZIP_IN_DESTINATION_APP";
-            
+            public const string mergedAppDataSplitZipFiles = "MERGED_APP_DATA_SPLIT_ZIP_FILES";
+            public const string UploadToBlobStorageIfEnabled = "UPLOADED_TO_BLOB_STORAGE_IF_ENABLED";
+            public const string UploadWpContentBlobsCompleted = "UPLOAD_WP_CONTENT_BLOBS_COMPLETED";
+            public const string UploadedWpBlob = "UPLOADED_BLOB_{0}";
+
         }
     }
 }

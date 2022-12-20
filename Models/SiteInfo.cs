@@ -25,6 +25,7 @@ namespace WordPressMigrationTool
         public string databaseUsername { get; set; }
         public string databasePassword { get; set; }
         public string databaseName { get; set; }
+        public string stackVersion { get; set; }
 
         public SiteInfo(string subscriptionId, string resourceGroupName, string webAppName)
         {

@@ -12,12 +12,14 @@ namespace WordPressMigrationTool
         private SiteInfo _destinationSiteInfo;
         private RichTextBox? _progressViewRTextBox;
         private string[] _previousMigrationStatus;
+        private string _previousMigrationBlobContainerName;
 
-        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus) { 
+        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, string previousMigrationBlobContainerName) { 
             this._sourceSiteInfo = sourceSiteInfo;
             this._destinationSiteInfo = destinationSiteInfo;
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
+            this._previousMigrationBlobContainerName = previousMigrationBlobContainerName;
         }
 
         public Result Migrate()
@@ -41,10 +43,11 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
+                System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
 
                 ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
-                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
+                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._previousMigrationBlobContainerName);
 
                 Result validationRes = validationService.ValidateMigrationInput(this._sourceSiteInfo, this._destinationSiteInfo);
                 if (validationRes.status != Status.Completed)
@@ -57,13 +60,14 @@ namespace WordPressMigrationTool
                 {
                     return exporttRes;
                 }
-                System.Diagnostics.Debug.WriteLine("database name before import is : ", this._sourceSiteInfo.databaseName);
+                
                 Result importRes = importService.ImportDataToDestinationSite(this._destinationSiteInfo, this._sourceSiteInfo.databaseName);
                 if (importRes.status == Status.Failed || importRes.status == Status.Cancelled)
                 {
                     return importRes;
                 }
 
+                System.Diagnostics.Debug.WriteLine("before cleaning local temp files");
                 this.CleanLocalTempFiles();
                 Result cleanupRes = this.CleanDestinationAppTempFiles(this._destinationSiteInfo);
                 if (cleanupRes.status == Status.Failed || cleanupRes.status == Status.Cancelled)
@@ -90,6 +94,7 @@ namespace WordPressMigrationTool
                 HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
                 this._sourceSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
                 this._sourceSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
+                this._sourceSiteInfo.stackVersion = webAppResource.Data.SiteConfig.PhpVersion;
 
                 return new Result(Status.Completed, "");
             }
@@ -114,6 +119,7 @@ namespace WordPressMigrationTool
                 this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
                 this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
                 this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+                this._destinationSiteInfo.stackVersion = webAppResource.Data.SiteConfig.LinuxFxVersion;
 
                 return new Result(Status.Completed, "");
             }
@@ -158,11 +164,12 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("WPMigrationTool ({0}, {1}, {2}, {3}, {4}, {5}, {6}), {7})", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
+                string logMessage = String.Format("WPMigrationTool_{0}_{1}, {2}, {3}, {4}, {5}, {6}), {7}", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
                 // logs Migration status
+                System.Diagnostics.Debug.WriteLine(logMessage);
                 this.LogMigrationStatusMessage(logMessage);
                 
                 if (res.status == Status.Failed || res.status == Status.Cancelled)

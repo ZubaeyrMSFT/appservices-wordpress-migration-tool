@@ -47,40 +47,50 @@ namespace WordPressMigrationTool
 
             try
             {
-                string message = "";
+                Result result;
 
-                string sourceSiteWpVersion = this.GetWpVersion("./site/wwwroot/", sourceSite);
-                string destinationSiteWpVersion = this.GetWpVersion("/home/site/wwwroot/", destinationSite);
-                bool isWpVersionDifferent = false;
-                if (sourceSiteWpVersion != destinationSiteWpVersion)
+                result = this.CompareWpVersion();
+                if (result.status != Status.Completed)
                 {
-                    isWpVersionDifferent = true;
+                    return result;
                 }
 
-                System.Diagnostics.Debug.WriteLine("wp version difference :" + sourceSiteWpVersion + " | " + destinationSiteWpVersion);
-
-                if (isWpVersionDifferent)
-                {
-                    message = String.Format("The WordPress version of source site ({0}) is different from that of desitnation site ({1}). " +
-                       "Your plugins/themes maybe incompatible with the new site. Do you want to continue", sourceSiteWpVersion, destinationSiteWpVersion);
-                    string caption = "WordPress Version Conflict Detected!";
-                    
-                    var result = MessageBox.Show(message, caption,
-                                         MessageBoxButtons.YesNo,
-                                         MessageBoxIcon.Question);
-                    if (result == DialogResult.No)
-                    {
-                        return new Result(Status.Failed, "Chosen to discontinue current migration.");
-                    }
-                }
-
-                return new Result(Status.Completed, "");
-
+                return result;
             } 
             catch (Exception ex)
             {
                 return new Result(Status.Failed, ex.Message);
             }
+        }
+
+        private Result CompareWpVersion()
+        {
+            string message = "";
+
+            string sourceSiteWpVersion = this.GetWpVersion("./site/wwwroot/", this._sourceSiteInfo);
+            string destinationSiteWpVersion = this.GetWpVersion("/home/site/wwwroot/", this._destinationSiteInfo);
+            bool isWpVersionDifferent = false;
+            if (sourceSiteWpVersion != destinationSiteWpVersion)
+            {
+                isWpVersionDifferent = true;
+            }
+
+            if (isWpVersionDifferent)
+            {
+                message = String.Format("The WordPress version of source site ({0}) is different from that of desitnation site ({1}). " +
+                   "Your plugins/themes maybe incompatible with the new site. Do you want to continue", sourceSiteWpVersion, destinationSiteWpVersion);
+                string caption = "WordPress Version Conflict Detected!";
+
+                var result = MessageBox.Show(message, caption,
+                                     MessageBoxButtons.YesNo,
+                                     MessageBoxIcon.Question);
+                if (result == DialogResult.No)
+                {
+                    return new Result(Status.Failed, "Chosen to discontinue current migration.");
+                }
+            }
+
+            return new Result(Status.Completed, "");
         }
 
         private string GetWpVersion(string wpRootDir, SiteInfo siteInfo)

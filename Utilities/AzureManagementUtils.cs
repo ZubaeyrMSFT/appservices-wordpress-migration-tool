@@ -136,6 +136,11 @@ namespace WordPressMigrationTool.Utilities
             return new Dictionary<string, string>(appSettings.Value.Properties);
         }
 
+        public static IDictionary<string, string> GetWebSiteApplicationSettings(WebSiteResource webSiteResource)
+        {
+            return webSiteResource.GetApplicationSettings().Value.Properties;
+        }
+
         public static bool UpdateApplicationSettingForAppService(WebSiteResource webSiteResource, string appSettingKey, string appSettingValue)
         {
             Response<AppServiceConfigurationDictionary> appSettings = webSiteResource.GetApplicationSettings();

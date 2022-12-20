@@ -2,6 +2,9 @@
 using MySqlX.XDevAPI.Common;
 using System.Diagnostics;
 using WordPressMigrationTool.Utilities;
+using Azure.Storage.Blobs;
+using Ionic.Zip;
+using Renci.SshNet.Sftp;
 
 namespace WordPressMigrationTool
 {
@@ -10,13 +13,15 @@ namespace WordPressMigrationTool
         private RichTextBox? _progressViewRTextBox;
         private string[]  _previousMigrationStatus;
         private string _migrationStatusFilePath;
+        private string _previousMigrationBlobContainerName;
 
         public ImportService() { }
 
-        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus)
+        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, string previousMigrationBlobContainerName)
         {
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
+            this._previousMigrationBlobContainerName = previousMigrationBlobContainerName;
         }
 
         public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
@@ -201,6 +206,7 @@ namespace WordPressMigrationTool
             if (result.status == Status.Completed)
             {
                 File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.clearMigrationDirInDestinationSite, callOrder) + Environment.NewLine);
+                System.Diagnostics.Debug.WriteLine("after file.append in clear migrationdirindestinationsite 2 ");
             }
             return result;
         }
@@ -299,13 +305,19 @@ namespace WordPressMigrationTool
                 return new Result(Status.Completed, "Completed post processing of Import data in previous migration attempt.");
             }
 
-            Result result = this._StartPostProcessing(destinationSite, databaseName, webAppResource);
+            Result result = this.UploadToBlobStorageIfEnabled(webAppResource);
             if (result.status != Status.Completed)
             {
                 return result;
             }
 
-            result = this._WaitForPostProcessing(destinationSite, databaseName, webAppResource);
+            result = this.StartPostProcessing(destinationSite, databaseName, webAppResource);
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
+            result = this.WaitForPostProcessing(destinationSite, databaseName, webAppResource);
             if (result.status != Status.Completed)
             {
                 this.StopPostProcessing(destinationSite, databaseName, webAppResource);
@@ -323,7 +335,132 @@ namespace WordPressMigrationTool
             return result;
         }
 
-        public Result _StartPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
+        public Result UploadToBlobStorageIfEnabled(WebSiteResource destinationSiteResource)
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.UploadToBlobStorageIfEnabled))
+            {
+                return new Result(Status.Completed, "Blob Storage setup completed in previous migration attempt.");
+            }
+
+            IDictionary<string, string> appSettings = AzureManagementUtils.GetWebSiteApplicationSettings(destinationSiteResource);
+
+            if (!this.IsBlobStorageEnabledInDestinationSite(appSettings))
+            {
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
+                System.Diagnostics.Debug.WriteLine("no blob storage detected.");
+                return new Result(Status.Completed, "");
+            }
+
+            try
+            {
+                string conn_string = String.Format("DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={0};AccountKey={1}", appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_NAME], appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_KEY]);
+                BlobServiceClient blobServiceClient = new BlobServiceClient(conn_string);
+
+                System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
+                // If this is a new migration run, creatw a new blob container
+                string blobContainerName = this._previousMigrationBlobContainerName;
+                if (String.IsNullOrEmpty(blobContainerName))
+                {
+                    blobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower() + "-" + new Random().Next(0, 1000).ToString();
+                    blobServiceClient.CreateBlobContainer(blobContainerName);
+                    File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.previousMigrationBlobContainerName + blobContainerName + Environment.NewLine);
+                }
+
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
+
+                Result result = this.UploadWpContentBlobs(blobContainerClient);
+                if (result.status != Status.Completed)
+                {
+                    return result;
+                }
+
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
+                return new Result(Status.Completed, "");
+            }
+            catch
+            {
+                return new Result(Status.Failed, "Could not upload WordPress content to Blob Storage.");
+            }
+        }
+
+        private Result UploadWpContentBlobs(BlobContainerClient blobContainerClient)
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.UploadWpContentBlobsCompleted))
+            {
+                return new Result(Status.Completed, "Uploaded WordPress uploads to blob storage in previous migration attempt.");
+            }
+
+            try
+            {
+                string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
+                string blobUploadFilePath = Environment.ExpandEnvironmentVariables(Constants.BLOB_UPLOAD_FILE_PATH);
+
+                using (var zipFile = Ionic.Zip.ZipFile.Read(appContentFilePath))
+                {
+                    int count = 0;
+                    foreach (ZipEntry zipEntry in zipFile)
+                    {
+                        System.Diagnostics.Debug.WriteLine("zipentry iteration count is: " + count.ToString() + " filename is : " + zipEntry.FileName);
+                        count++;
+                        if (!zipEntry.FileName.StartsWith(Constants.WP_UPLOADS_PREFIX) || zipEntry.IsDirectory || this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.UploadedWpBlob, zipEntry.FileName)))
+                        {
+                            continue;
+                        }
+
+                        // clear blobs local placeholder directory
+                        if (Directory.Exists(blobUploadFilePath))
+                        {
+                            this.RecursiveDeleteDirectory(blobUploadFilePath);
+                        }
+                        Directory.CreateDirectory(blobUploadFilePath);
+
+                        string targetPath = zipEntry.FileName;
+
+                        // extract current file
+                        string zipEntryFileName = System.IO.Path.GetFileName(zipEntry.FileName);
+                        zipEntry.Extract(blobUploadFilePath, ExtractExistingFileAction.OverwriteSilently);
+
+                        System.Diagnostics.Debug.WriteLine("blobuploadpath is : " + blobUploadFilePath);
+                        // upload file to blob storage
+                        BlobClient blobClient = blobContainerClient.GetBlobClient(targetPath);
+                        blobClient.Upload(blobUploadFilePath + targetPath, true);
+
+                        File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.UploadedWpBlob, zipEntry.FileName) + Environment.NewLine);
+                    }
+                }
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadWpContentBlobsCompleted + Environment.NewLine);
+
+                return new Result(Status.Completed, "");
+            }
+            catch(Exception ex)
+            {
+                return new Result(Status.Failed, "Could not upload WordPress content to Blob Storage. exception is " + ex.Message);
+            }
+        }
+
+        private void RecursiveDeleteDirectory(string targetDir)
+        {
+            if (! Directory.Exists(targetDir))
+            {
+                return;
+            }
+            foreach ( string dir in Directory.EnumerateDirectories(targetDir))
+            {
+                RecursiveDeleteDirectory(dir);
+            }
+            Directory.Delete(targetDir, true);
+        }
+
+        public bool IsBlobStorageEnabledInDestinationSite(IDictionary<string, string> appSettings)
+        {
+            return appSettings.ContainsKey(Constants.APPSETTING_BLOB_STORAGE_ENABLED)
+                && appSettings[Constants.APPSETTING_BLOB_STORAGE_ENABLED].ToLower() == "true"
+                && appSettings.ContainsKey(Constants.APPSETTING_BLOB_CONTAINER_NAME)
+                && appSettings.ContainsKey(Constants.APPSETTING_STORAGE_ACCOUNT_NAME)
+                && appSettings.ContainsKey(Constants.APPSETTING_STORAGE_ACCOUNT_KEY);
+        }
+
+        public Result StartPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
         {
             try
             {
@@ -362,7 +499,7 @@ namespace WordPressMigrationTool
                 "App Settings used for database import trigger...");
         }
 
-        public Result _WaitForPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
+        public Result WaitForPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
         {
             string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
             Stopwatch timer = Stopwatch.StartNew();

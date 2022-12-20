@@ -246,7 +246,7 @@ namespace WordPressMigrationTool
 
             if (this.linuxResourceGroupComboBox.SelectedIndex == 0)
             {
-                this.linuxResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
+                this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
                 return;
             }
 
@@ -271,7 +271,6 @@ namespace WordPressMigrationTool
             this.linuxResourceGroupComboBox.Enabled = isEnabled;
             this.migrateButton.Enabled = isEnabled;
         }
-
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
@@ -310,7 +309,7 @@ namespace WordPressMigrationTool
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
 
-            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>());
+            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>(), null);
             ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
             this._childThread = new Thread(childref);
             this._childThread.Start();
@@ -320,6 +319,8 @@ namespace WordPressMigrationTool
         {
             SiteInfo sourceSiteInfo = null;
             SiteInfo destinationSiteInfo = null;
+            string previousMigrationBlobContainerName = null;
+
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             if (!Directory.Exists(directoryPath))
             {
@@ -331,9 +332,9 @@ namespace WordPressMigrationTool
             {
                 string[] statusMessages = File.ReadAllLines(statusFilePath);
 
-                if (this.isMigrationStatusFileValid(statusMessages, out sourceSiteInfo, out destinationSiteInfo))
+                if (this.isMigrationStatusFileValid(statusMessages, out sourceSiteInfo, out destinationSiteInfo, out previousMigrationBlobContainerName))
                 {
-                    this.showResumeMigrationDialogBox(statusMessages, sourceSiteInfo, destinationSiteInfo);
+                    this.showResumeMigrationDialogBox(statusMessages, sourceSiteInfo, destinationSiteInfo, previousMigrationBlobContainerName);
                     return;
                 }
                 else
@@ -350,10 +351,10 @@ namespace WordPressMigrationTool
             }
         }
 
-        private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo)
+        private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, string previousMigrationBlobContainerName)
         {
-            const string message =
-            "Detected a previous unfinished migration.. Do you want to resume?";
+            string message =
+            String.Format("Detected a previous unfinished migration from source site {0} to destination site {1}.. Do you want to resume?", sourceSiteInfo.webAppName, destinationSiteInfo.webAppName);
             const string caption = "Resume Previous Migration";
             var result = MessageBox.Show(message, caption,
                                          MessageBoxButtons.YesNo,
@@ -367,14 +368,14 @@ namespace WordPressMigrationTool
                 progressViewUX.Show();
 
                 System.Diagnostics.Debug.WriteLine("sourcesite name is |" + sourceSiteInfo.webAppName + "|");
-                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages);
+                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, previousMigrationBlobContainerName);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
                 this._childThread.Start();
             }
         }
 
-        private bool isMigrationStatusFileValid(string[] statusMessages, out SiteInfo sourceSiteInfo, out SiteInfo destinationSiteInfo)
+        private bool isMigrationStatusFileValid(string[] statusMessages, out SiteInfo sourceSiteInfo, out SiteInfo destinationSiteInfo, out string blobContainerName)
         {
             string sourceSite = null;
             string destinationSite = null;
@@ -383,12 +384,15 @@ namespace WordPressMigrationTool
             string sourceSubscription = null;
             string destinationSubscription = null;
 
+            blobContainerName = null;
+
             foreach (string statusMsg in statusMessages)
             {
                 if (statusMsg == Constants.StatusMessages.migrationFailed || statusMsg == Constants.StatusMessages.migrationCompleted)
                 {
                     sourceSiteInfo = null;
                     destinationSiteInfo = null;
+                    blobContainerName = null;
                     return false;
                 }
                 if (statusMsg.StartsWith(Constants.StatusMessages.sourceSiteName))
@@ -426,6 +430,12 @@ namespace WordPressMigrationTool
                     destinationSubscription = statusMsg.Split()[4];
                     continue;
                 }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.destinationSiteSubscription))
+                {
+                    blobContainerName = statusMsg.Split()[5];
+                    continue;
+                }
             }
 
             if (String.IsNullOrEmpty(sourceSite) || String.IsNullOrEmpty(sourceResourceGroup) || String.IsNullOrEmpty(sourceSubscription) ||
@@ -433,6 +443,7 @@ namespace WordPressMigrationTool
             {
                 sourceSiteInfo = null;
                 destinationSiteInfo = null;
+                blobContainerName = null;
                 return false;
             }
 

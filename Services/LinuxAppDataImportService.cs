@@ -5,7 +5,6 @@ namespace WordPressMigrationTool
 {
     public class LinuxAppDataImportService
     {
-
         private string _ftpUserName;
         private string _ftpPassword;
         private string _appServiceName;
@@ -94,7 +93,6 @@ namespace WordPressMigrationTool
             HelperUtils.WriteOutputWithRC("App data upload progress - Finished uploading 0 out of "
                 + splitZipFilesArr.Length + " files.", this._progressViewRTextBox);
 
-
             for (int splitInd = 0; splitInd < splitZipFilesArr.Length; splitInd++)
             {
                 string splitZipFileName = Path.GetFileName(splitZipFilesArr[splitInd]);
@@ -177,7 +175,7 @@ namespace WordPressMigrationTool
 
         private bool mergeSplitZipFiles ()
         {
-            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.uploadAppDataSplitZipFileCompleted))
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.mergedAppDataSplitZipFiles))
             {
                 return true;
             }
@@ -187,7 +185,7 @@ namespace WordPressMigrationTool
 
             if (result.status == Status.Completed)
             {
-                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadAppDataSplitZipFileCompleted + Environment.NewLine);
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.mergedAppDataSplitZipFiles + Environment.NewLine);
                 return true;
             }
             return false;

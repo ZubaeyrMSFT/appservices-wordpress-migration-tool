@@ -190,7 +190,6 @@ namespace WordPressMigrationTool.Utilities
         {
             Status result = Status.Failed;
             string message = "Unable to log Migration Status in Kudu Table for the app " + appServiceName;
-
             string listTargetDirCommand = String.Format(Constants.LIST_DIR_COMMAND, "/home");
 
             try
