@@ -10,6 +10,8 @@ namespace WordPressMigrationTool
     {
         private SiteInfo _sourceSiteInfo;
         private SiteInfo _destinationSiteInfo;
+        private WebSiteResource _sourceSiteResourse;
+        private WebSiteResource _destinationSiteResource;
         private RichTextBox? _progressViewRTextBox;
         private string[] _previousMigrationStatus;
         private string _previousMigrationBlobContainerName;
@@ -45,7 +47,7 @@ namespace WordPressMigrationTool
                 }
                 System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
 
-                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus);
+                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._previousMigrationBlobContainerName);
 
@@ -95,6 +97,7 @@ namespace WordPressMigrationTool
                 this._sourceSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
                 this._sourceSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
                 this._sourceSiteInfo.stackVersion = webAppResource.Data.SiteConfig.PhpVersion;
+                this._sourceSiteResourse = webAppResource;
 
                 return new Result(Status.Completed, "");
             }
@@ -120,6 +123,7 @@ namespace WordPressMigrationTool
                 this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
                 this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
                 this._destinationSiteInfo.stackVersion = webAppResource.Data.SiteConfig.LinuxFxVersion;
+                this._destinationSiteResource = webAppResource;
 
                 return new Result(Status.Completed, "");
             }
@@ -200,18 +204,22 @@ namespace WordPressMigrationTool
             {
                 Directory.Delete(splitZipFilesDirectory, true);
             }
+            System.Diagnostics.Debug.WriteLine("after cleaning split zip files dir");
 
             string zippedSplitZipFIlesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR);
             if (Directory.Exists(zippedSplitZipFIlesDirectory))
             {
                 Directory.Delete(zippedSplitZipFIlesDirectory, true);
             }
+            System.Diagnostics.Debug.WriteLine("after cleaning zippedsplitzipfilesdir");
 
             string localDataExportDirectory = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
+            System.Diagnostics.Debug.WriteLine("after cleaning zippedsplitzipfilesdir");
             if (Directory.Exists(localDataExportDirectory))
             {
                 Directory.Delete(localDataExportDirectory, true);
             }
+            System.Diagnostics.Debug.WriteLine("after cleaning local temp files");
         }
 
         private Result CleanDestinationAppTempFiles(SiteInfo destinationSite)

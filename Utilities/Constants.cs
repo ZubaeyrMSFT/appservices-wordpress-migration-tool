@@ -81,6 +81,9 @@ namespace WordPressMigrationTool.Utilities
         public const string IMPORT_FAILURE_MESSAGE = "IMPORT_POST_PROCESSING_FAILED";
         public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/import_status.txt";
 
+        public const string LINUXFXVERSION_PREFIX = "WORDPRESS|";
+        public const string MCR_LATEST_IMAGE_LINUXFXVERSION = "mcr.microsoft.com/appsvc/wordpress-alpine-php:latest";
+
         public static class StatusMessages
         {
             public const string sourceSiteName = "Source Site name : ";
