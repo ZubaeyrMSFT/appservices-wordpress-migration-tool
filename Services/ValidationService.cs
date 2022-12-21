@@ -93,15 +93,13 @@ namespace WordPressMigrationTool
             if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION && !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
             {
                 string message = String.Format("The destination site ({0}) doesn't use an official WordPress on Linux image. This may cause the migration to fail. Do you want to continue?", this._destinationSiteInfo.webAppName);
-
                 string caption = "Invalid Image Detected!";
-
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.YesNo,
                                      MessageBoxIcon.Question);
                 if (result == DialogResult.No)
                 {
-                    return new Result(Status.Failed, "Chosen to discontinue current migration.");
+                    return new Result(Status.Failed, "Stopping current migration.");
                 }
             }
 
@@ -110,19 +108,18 @@ namespace WordPressMigrationTool
             KuduCommandApiResult kuduCommandApiResult= HelperUtils.ExecuteKuduCommandApi(getStatusFileCommand, this._destinationSiteInfo.ftpUsername, this._destinationSiteInfo.ftpPassword, this._destinationSiteInfo.webAppName);
             if (kuduCommandApiResult.status != Status.Completed || kuduCommandApiResult.exitCode != 0 || !kuduCommandApiResult.output.Contains(Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE))
             {
-                string message = String.Format("The destination site ({0}) hasn't finished installing WordPress. It is advised to restart the site and wait for 5-10 minutes before trying again. Do you still want to continue?", this._destinationSiteInfo.webAppName);
-
+                string message = String.Format("The destination site ({0}) hasn't finished installing WordPress. " +
+                    "It is advised to restart the site and wait for 5-10 minutes before trying again. Do you still want to continue?", 
+                    this._destinationSiteInfo.webAppName);
                 string caption = "Incomplete WordPress installation detected!";
-
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.YesNo,
                                      MessageBoxIcon.Question);
                 if (result == DialogResult.No)
                 {
-                    return new Result(Status.Failed, "Chosen to discontinue current migration.");
+                    return new Result(Status.Failed, "Stopping current migration.");
                 }
             }
-
             return new Result(Status.Completed, "");
         }
 
@@ -150,7 +147,7 @@ namespace WordPressMigrationTool
                                      MessageBoxIcon.Question);
                 if (result == DialogResult.No)
                 {
-                    return new Result(Status.Failed, "Chosen to discontinue current migration.");
+                    return new Result(Status.Failed, "Stopping current migration.");
                 }
             }
 
@@ -188,15 +185,13 @@ namespace WordPressMigrationTool
             if (String.IsNullOrEmpty(sourceSitePhpVersion) || String.IsNullOrEmpty(destinationSitePhpVersion) || sourceSitePhpVersion != destinationSitePhpVersion)
             {
                 string message = String.Format("Source site ({0}) and destination site use different PHP versions. This may lead to incompatibilities with themes/plugins after migration. Do you want continue?", this._destinationSiteInfo.webAppName);
-
                 string caption = "Different PHP versions detected!";
-
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.YesNo,
                                      MessageBoxIcon.Question);
-                if (result == DialogResult.No)
+                if (result == DialogResult.No)  
                 {
-                    return new Result(Status.Failed, "Chosen to discontinue current migration.");
+                    return new Result(Status.Failed, "Stopping current migration.");
                 }
             }
 

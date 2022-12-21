@@ -135,7 +135,6 @@ namespace WordPressMigrationTool.Utilities
             }
 
             string command = String.Format("bash -c \" {0} \"", inputCommand);
-            string requestUserAgentValue = Constants.MigrationToolVersion + (String.IsNullOrEmpty(message) ? "" : " (" + message + ")");
             var appServiceKuduCommandURL = GetKuduApiForCommandExec(appServiceName);
 
             int trycount = 1;
@@ -148,7 +147,12 @@ namespace WordPressMigrationTool.Utilities
                         var jsonString = JsonConvert.SerializeObject(new { command = command, dir = "" });
                         HttpContent httpContent = new StringContent(jsonString);
                         httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-                        client.DefaultRequestHeaders.UserAgent.ParseAdd(requestUserAgentValue);
+                        
+                        // Embed Status message into UserAgent field
+                        if (!String.IsNullOrEmpty(message))
+                        {
+                            client.DefaultRequestHeaders.UserAgent.TryParseAdd(message);
+                        }
 
                         // Set Basic auth
                         var byteArray = Encoding.ASCII.GetBytes(ftpUsername + ":" + ftpPassword);
@@ -163,6 +167,7 @@ namespace WordPressMigrationTool.Utilities
                         var myStreamReader = new StreamReader(responseStream, Encoding.UTF8);
                         var responseJSON = myStreamReader.ReadToEnd();
                         var responseData = JsonConvert.DeserializeObject<KuduCommandApiResponse>(responseJSON);
+
 
                         if (responseData != null && response.IsSuccessStatusCode)
                         {
@@ -183,31 +188,6 @@ namespace WordPressMigrationTool.Utilities
                 }
             }
             return new KuduCommandApiResult(Status.Failed);
-        }
-
-        // The following function logs current migration status 
-        public static Result logMigrationStatusInKuduTable(string ftpUsername, string ftpPassword, string appServiceName, string logMessage)
-        {
-            Status result = Status.Failed;
-            string message = "Unable to log Migration Status in Kudu Table for the app " + appServiceName;
-            string listTargetDirCommand = String.Format(Constants.LIST_DIR_COMMAND, "/home");
-
-            try
-            {
-                // sends out a kudu command API with message embedded in User-Agent Header value
-                KuduCommandApiResult executeCommandResult = ExecuteKuduCommandApi(listTargetDirCommand, ftpUsername, ftpPassword, appServiceName, message: logMessage);
-                if (executeCommandResult.status == Status.Completed)
-                {
-                    result = Status.Completed;
-                    message = "Successfully logged Status message.";
-                }
-            }
-            catch (Exception e)
-            {
-                result = Status.Failed;
-            }
-
-            return new Result(result, message);
         }
 
         public static Result ClearAppServiceDirectory(string targetFolder, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = Constants.MAX_APP_CLEAR_DIR_RETRIES)

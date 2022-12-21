@@ -28,6 +28,7 @@ namespace WordPressMigrationTool
         {
             try
             {
+                
                 Result result = this.InitializeMigrationStatusFile();
                 if (result.status != Status.Completed)
                 {
@@ -168,7 +169,7 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("WPMigrationTool_{0}_{1}, {2}, {3}, {4}, {5}, {6}), {7}", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
+                string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}); {7})", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
@@ -194,7 +195,8 @@ namespace WordPressMigrationTool
 
         private void LogMigrationStatusMessage(string logMessage)
         {
-            HelperUtils.ExecuteKuduCommandApi(String.Format(Constants.LIST_DIR_COMMAND, "/home"), this._destinationSiteInfo.ftpUsername, this._destinationSiteInfo.ftpPassword, this._destinationSiteInfo.webAppName, message: logMessage);
+            KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(String.Format(Constants.LIST_DIR_COMMAND, "/home"), this._destinationSiteInfo.ftpUsername, this._destinationSiteInfo.ftpPassword, this._destinationSiteInfo.webAppName, message: logMessage);
+            System.Diagnostics.Debug.WriteLine(String.Format("logging status is {0}; exitcode is {1}; output is {2}", result.status.ToString(), result.exitCode.ToString(), result.output));
         }
 
         private void CleanLocalTempFiles()

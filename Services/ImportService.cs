@@ -5,6 +5,9 @@ using WordPressMigrationTool.Utilities;
 using Azure.Storage.Blobs;
 using Ionic.Zip;
 using Renci.SshNet.Sftp;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage;
+using System.Transactions;
 
 namespace WordPressMigrationTool
 {
@@ -357,21 +360,28 @@ namespace WordPressMigrationTool
                 BlobServiceClient blobServiceClient = new BlobServiceClient(conn_string);
 
                 System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
-                // If this is a new migration run, creatw a new blob container
-                string blobContainerName = this._previousMigrationBlobContainerName;
-                if (String.IsNullOrEmpty(blobContainerName))
+                // If this is a new migration run, create a new blob container, else, use the previously created blob container.
+                string newBlobContainerName = this._previousMigrationBlobContainerName;
+                if (String.IsNullOrEmpty(newBlobContainerName))
                 {
-                    blobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower() + "-" + new Random().Next(0, 1000).ToString();
-                    blobServiceClient.CreateBlobContainer(blobContainerName);
-                    File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.previousMigrationBlobContainerName + blobContainerName + Environment.NewLine);
+                    newBlobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower() + "-" + new Random().Next(0, 1000).ToString();
+                    blobServiceClient.CreateBlobContainer(newBlobContainerName);
+                    File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.previousMigrationBlobContainerName + newBlobContainerName + Environment.NewLine);
                 }
 
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(newBlobContainerName);
 
+                // Upload WordPress "wp-content/uploads" folder to blob container
                 Result result = this.UploadWpContentBlobs(blobContainerClient);
                 if (result.status != Status.Completed)
                 {
                     return result;
+                }
+
+                // Update BLOB_CONTAINER_NAME appsetting on destination site
+                if (!AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, Constants.APPSETTING_BLOB_CONTAINER_NAME, newBlobContainerName))
+                {
+                    return new Result(Status.Failed, "Could not update BLOB_CONTAINER_NAME appsetting on destination site...");
                 }
 
                 File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
@@ -415,15 +425,20 @@ namespace WordPressMigrationTool
                         Directory.CreateDirectory(blobUploadFilePath);
 
                         string targetPath = zipEntry.FileName;
-
-                        // extract current file
                         string zipEntryFileName = System.IO.Path.GetFileName(zipEntry.FileName);
                         zipEntry.Extract(blobUploadFilePath, ExtractExistingFileAction.OverwriteSilently);
 
-                        System.Diagnostics.Debug.WriteLine("blobuploadpath is : " + blobUploadFilePath);
-                        // upload file to blob storage
                         BlobClient blobClient = blobContainerClient.GetBlobClient(targetPath);
-                        blobClient.Upload(blobUploadFilePath + targetPath, true);
+                        
+                        // Defines blob chunk size limit
+                        StorageTransferOptions transferOptions = new StorageTransferOptions();
+                        transferOptions.InitialTransferSize = Constants.BLOB_FILE_UPLOAD_LIMIT;
+                        transferOptions.MaximumTransferSize = Constants.BLOB_FILE_UPLOAD_LIMIT;
+
+                        BlobUploadOptions blobUploadOptions = new BlobUploadOptions();
+                        blobUploadOptions.TransferOptions = transferOptions;
+
+                        blobClient.Upload(blobUploadFilePath + targetPath, blobUploadOptions);
 
                         File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.UploadedWpBlob, zipEntry.FileName) + Environment.NewLine);
                     }

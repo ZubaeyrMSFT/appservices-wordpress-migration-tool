@@ -47,7 +47,6 @@ namespace WordPressMigrationTool.Utilities
 
         public static SubscriptionCollection GetSubscriptions()
         {
-            System.Diagnostics.Debug.WriteLine("getting subscriptions");
             ArmClient client = new ArmClient(new DefaultAzureCredential(true));
             if (client == null)
             {
@@ -59,7 +58,6 @@ namespace WordPressMigrationTool.Utilities
 
         public static List<String> GetResourceGroupsInSubscription(string subscriptionId, SubscriptionCollection subscriptions)
         {
-            System.Diagnostics.Debug.WriteLine("subscriptionId in getresourcegroups is " + subscriptionId + "|");
             SubscriptionResource subscription = subscriptions.Get(subscriptionId);
             ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
 
