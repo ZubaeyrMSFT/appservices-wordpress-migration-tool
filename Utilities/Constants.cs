@@ -8,7 +8,7 @@ namespace WordPressMigrationTool.Utilities
         public const string AZURE_PORTAL_URL = "https://ms.portal.azure.com/#create/WordPress.WordPress";
 
         public const int KUDU_ZIP_API_MAX_UPLOAD_LIMIT = 100000000;     // 100 Million Bytes
-        public const int BLOB_FILE_UPLOAD_LIMIT = 100000000; // 100 Million Bytes
+        public const int BLOB_FILE_UPLOAD_LIMIT = 100000000;            // 100 Million Bytes
 
         public const string WIN_WPCONTENT_ZIP_FILENAME = "wpcontent.zip";
         public const string WIN_MYSQL_ZIP_FILENAME = "mysqldata.zip";
@@ -60,8 +60,20 @@ namespace WordPressMigrationTool.Utilities
         public const string WPCONTENT_SPLIT_ZIP_FILE_PATH = WPCONTENT_SPLIT_ZIP_FILES_DIR + WPCONTENT_SPLIT_ZIP_FILE_NAME;
         public const string WPCONTENT_SPLIT_ZIP_NESTED_DIR = DATA_EXPORT_PATH + "ZippedWpContentSplitFiles\\";
 
-        public const string MYSQL_TEMP_DIR = LIN_APP_SVC_MIGRATE_DIR + "mysql/";
+        public const string MYSQL_SPLIT_ZIP_FILES_DIR = DATA_EXPORT_PATH + "mysqlSplitDir\\";
+        public const string MYSQL_SPLIT_ZIP_FILE_NAME_PREFIX = "MysqlSplit";
+        public const string MYSQL_SPLIT_ZIP_FILE_NAME = MYSQL_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip";
+        public const string MYSQL_SPLIT_ZIP_FILE_PATH = MYSQL_SPLIT_ZIP_FILES_DIR + MYSQL_SPLIT_ZIP_FILE_NAME;
+        public const string MYSQL_SPLIT_ZIP_NESTED_DIR = DATA_EXPORT_PATH + "ZippedMysqlSplitFiles\\";
+
         public const string LIN_APP_SVC_MIGRATE_DIR = "/home/dev/migrate/";
+        public const string MYSQL_TEMP_DIR = LIN_APP_SVC_MIGRATE_DIR + "mysql/";
+        public const string MYSQL_TEMP_DIR_KUDU_API = "dev/migrate/mysql/";
+        public const string MYSQL_TEMP_ZIP_PATH = LIN_APP_SVC_MIGRATE_DIR + "mysql-temp.zip";
+        public const string MYSQL_CREATE_TEMP_DIR_COMMAND = "mkdir -p " + MYSQL_TEMP_DIR;
+        public const string MYSQL_MERGE_SPLLIT_FILES_COMAMND = "zip -FF " + MYSQL_TEMP_DIR + MYSQL_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + MYSQL_TEMP_ZIP_PATH;
+        public const string UNZIP_MERGED_MYSQL_COMMAND = "yes | unzip " + MYSQL_TEMP_ZIP_PATH + " -d " + MYSQL_TEMP_DIR;
+
         public const string WPCONTENT_TEMP_DIR = LIN_APP_SVC_MIGRATE_DIR + "wpcontentsplit/";
         public const string WPCONTENT_TEMP_DIR_KUDU_API = "dev/migrate/wpcontentsplit/";
         public const string WPCONTENT_TEMP_ZIP_PATH = LIN_APP_SVC_MIGRATE_DIR + "wp-content-temp.zip";
@@ -69,7 +81,6 @@ namespace WordPressMigrationTool.Utilities
         public const string WPCONTENT_MERGE_SPLLIT_FILES_COMAMND = "zip -FF " + WPCONTENT_TEMP_DIR + WPCONTENT_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + WPCONTENT_TEMP_ZIP_PATH;
         public const string UNZIP_MERGED_WPCONTENT_COMMAND = "yes | unzip " + WPCONTENT_TEMP_ZIP_PATH + " -d " + LIN_APP_SVC_WPCONTENT_DIR;
 
-        public const string MYSQL_CREATE_TEMP_DIR_COMMAND = "mkdir -p " + MYSQL_TEMP_DIR;
         public const string CLEAR_APP_SERVICE_DIR_COMMAND = "rm -rf {0}";
         public const string LIST_DIR_COMMAND = "ls {0}";
         public const string LIN_APP_MAKE_DIR_COMMAND = "mkdir -p {0}";
@@ -115,6 +126,12 @@ namespace WordPressMigrationTool.Utilities
             public const string deleteAppDataSplitZipFilesInDestinationApp = "DELETE_APP_DATA_SPLIT_ZIP_FILES_IN_DESTINATION_APP";
             public const string extractAppDataZipInDestinationApp = "EXTRACT_APP_DATA_ZIP_IN_DESTINATION_APP";
             public const string mergedAppDataSplitZipFiles = "MERGED_APP_DATA_SPLIT_ZIP_FILES";
+            public const string splitMysqlZipCompleted = "SPLIT_MYSQL_ZIP_COMPLETED";
+            public const string uploadMysqlSplitZipFilesCompleted = "UPLOAD_MYSQL_SPLIT_ZIP_FILES_COMPLETED";
+            public const string uploadMysqlSplitZipFileCompleted = "UPLOADED_MYSQL_SPLIT_ZIP_FILE_{0}";
+            public const string deleteMysqlSplitZipFilesInDestinationApp = "DELETE_MYSQL_SPLIT_ZIP_FILES_IN_DESTINATION_APP";
+            public const string extractMysqlZipInDestinationApp = "EXTRACT_MYSQL_ZIP_IN_DESTINATION_APP";
+            public const string mergedMysqlSplitZipFiles = "MERGED_MYSQL_SPLIT_ZIP_FILES";
             public const string UploadToBlobStorageIfEnabled = "UPLOADED_TO_BLOB_STORAGE_IF_ENABLED";
             public const string UploadWpContentBlobsCompleted = "UPLOAD_WP_CONTENT_BLOBS_COMPLETED";
             public const string UploadedWpBlob = "UPLOADED_BLOB_{0}";

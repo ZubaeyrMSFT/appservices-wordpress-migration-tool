@@ -28,7 +28,6 @@ namespace WordPressMigrationTool
         {
             try
             {
-                
                 Result result = this.InitializeMigrationStatusFile();
                 if (result.status != Status.Completed)
                 {
@@ -46,7 +45,6 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
-                System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
 
                 ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
@@ -70,8 +68,10 @@ namespace WordPressMigrationTool
                     return importRes;
                 }
 
-                System.Diagnostics.Debug.WriteLine("before cleaning local temp files");
+                // Clean Local Migration data
                 this.CleanLocalTempFiles();
+
+                // Clean Migration data in destination (linux) app service
                 Result cleanupRes = this.CleanDestinationAppTempFiles(this._destinationSiteInfo);
                 if (cleanupRes.status == Status.Failed || cleanupRes.status == Status.Cancelled)
                 {
@@ -153,7 +153,6 @@ namespace WordPressMigrationTool
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("previousmigrationstatus exists");
                 if (!File.Exists(statusFilePath))
                 {
                     return new Result(Status.Failed, "Could not find a migration statusfile.");
@@ -169,7 +168,7 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}); {7})", (res.status == Status.Completed ? "MIGRATION_COMPLETED" : "MIGRATION_FAILED"), 
+                string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}); {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
@@ -201,27 +200,8 @@ namespace WordPressMigrationTool
 
         private void CleanLocalTempFiles()
         {
-            string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
-            if (Directory.Exists(splitZipFilesDirectory))
-            {
-                Directory.Delete(splitZipFilesDirectory, true);
-            }
-            System.Diagnostics.Debug.WriteLine("after cleaning split zip files dir");
-
-            string zippedSplitZipFIlesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR);
-            if (Directory.Exists(zippedSplitZipFIlesDirectory))
-            {
-                Directory.Delete(zippedSplitZipFIlesDirectory, true);
-            }
-            System.Diagnostics.Debug.WriteLine("after cleaning zippedsplitzipfilesdir");
-
             string localDataExportDirectory = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
-            System.Diagnostics.Debug.WriteLine("after cleaning zippedsplitzipfilesdir");
-            if (Directory.Exists(localDataExportDirectory))
-            {
-                Directory.Delete(localDataExportDirectory, true);
-            }
-            System.Diagnostics.Debug.WriteLine("after cleaning local temp files");
+            HelperUtils.RecursiveDeleteDirectory(localDataExportDirectory);
         }
 
         private Result CleanDestinationAppTempFiles(SiteInfo destinationSite)

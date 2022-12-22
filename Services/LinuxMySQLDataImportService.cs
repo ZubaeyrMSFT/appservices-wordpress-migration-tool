@@ -27,10 +27,12 @@ namespace WordPressMigrationTool
         private string _password;
         private string _databaseName;
         private RichTextBox? _progressViewRTextBox;
+        private string[] _previousMigrationStatus;
+        private string _migrationStatusFilePath;
 
 
         public LinuxMySQLDataImportService(WebSiteResource destinationSiteResource, string serverHostName, string username,
-            string password, string databaseName, string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox)
+            string password, string databaseName, string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, string migrationStatusFilePath)
         {
             if (destinationSiteResource == null)
             {
@@ -88,6 +90,8 @@ namespace WordPressMigrationTool
             this._ftpUserName = ftpUserName;
             this._ftpPassword = ftpPassword;
             this._progressViewRTextBox = progressViewRTextBox;
+            this._previousMigrationStatus = previousMigrationStatus;
+            this._migrationStatusFilePath = migrationStatusFilePath;
         }
 
         public Result ImportData()
@@ -101,7 +105,19 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            result = this._UploadMySqlDump();
+            result = this._SplitMysqlZip();
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
+            result = this._UploadMysqlSplitZipFiles();
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
+            result = this._ProcessUploadedMysqlSplitZipFiles();
             if (result.status != Status.Completed)
             {
                 return result;
@@ -112,6 +128,169 @@ namespace WordPressMigrationTool
                 "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
 
             return new Result(Status.Completed, "Successfully migrated MySQL data to destination site.");
+        }
+
+        private Result _SplitMysqlZip()
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.splitMysqlZipCompleted))
+            {
+                return new Result(Status.Completed, "");
+            }
+
+            HelperUtils.WriteOutputWithNewLine("Splitting MySQL zip file...", this._progressViewRTextBox);
+            string mysqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
+            string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR);
+            string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILE_PATH);
+
+            if (Directory.Exists(splitZipFilesDirectory))
+            {
+                Directory.Delete(splitZipFilesDirectory, true);
+            }
+
+            try
+            {
+                Directory.CreateDirectory(splitZipFilesDirectory);
+                using (var zipFile = Ionic.Zip.ZipFile.Read(mysqlFilePath))
+                {
+                    zipFile.MaxOutputSegmentSize = Constants.KUDU_ZIP_API_MAX_UPLOAD_LIMIT;
+                    zipFile.Save(splitZipFilePath);
+                }
+
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.splitMysqlZipCompleted + Environment.NewLine);
+                return new Result(Status.Completed, "MySQL zip file splitted successful...");
+            }
+            catch (Exception ex)
+            {
+                return new Result(Status.Failed, "Couldn't split MySQL zip file. Error=" + ex.Message);
+            }
+        }
+
+        private Result _UploadMysqlSplitZipFiles()
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.uploadMysqlSplitZipFilesCompleted))
+            {
+                return new Result(Status.Completed, "");
+            }
+
+            string mysqlSplitZipDir = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR);
+            string[] splitZipFilesArr = Directory.GetFiles(mysqlSplitZipDir);
+            if (splitZipFilesArr.Length == 0)
+            {
+                return new Result(Status.Failed, "Could not find MySQL split zip data at " + mysqlSplitZipDir);
+            }
+
+            HelperUtils.WriteOutputWithRC("MySQL upload progress - Finished uploading 0 out of "
+                + splitZipFilesArr.Length + " files.", this._progressViewRTextBox);
+
+            for (int splitInd = 0; splitInd < splitZipFilesArr.Length; splitInd++)
+            {
+                string splitZipFileName = Path.GetFileName(splitZipFilesArr[splitInd]);
+                Result result = this._UploadSplitZipFileToAppService(splitZipFileName);
+                if (result.status == Status.Failed || result.status == Status.Cancelled)
+                {
+                    return result;
+                }
+
+                HelperUtils.WriteOutputWithRC("MySQL upload progress - Finished uploading " + (splitInd + 1) + " out of "
+                    + splitZipFilesArr.Length + " files." + ((splitInd + 1 == splitZipFilesArr.Length) ? "\n" : ""),
+                    this._progressViewRTextBox);
+            }
+
+            File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadAppDataSplitZipFilesCompleted + Environment.NewLine);
+            return new Result(Status.Completed, "MySQL split zip files uploaded successfully...");
+        }
+
+        private Result _UploadSplitZipFileToAppService(string splitZipFileName)
+        {
+            if (this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.uploadMysqlSplitZipFileCompleted, splitZipFileName)))
+            {
+                return new Result(Status.Completed, "");
+            }
+
+            string zippedSplitZipFilesDir = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_NESTED_DIR);
+            string zippedFileToUpload = zippedSplitZipFilesDir + splitZipFileName.Replace(".", "") + ".zip";
+            string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR + splitZipFileName);
+            string uploadMysqlKuduUrl = HelperUtils.GetKuduApiForZipUpload(this._appServiceName, Constants.MYSQL_TEMP_DIR_KUDU_API);
+
+            if (Directory.Exists(zippedSplitZipFilesDir))
+            {
+                Directory.Delete(zippedSplitZipFilesDir, true);
+            }
+            Directory.CreateDirectory(zippedSplitZipFilesDir);
+
+            var zipFile = new Ionic.Zip.ZipFile(Encoding.UTF8);
+            zipFile.AddFile(splitZipFilePath, "");
+            zipFile.Save(zippedFileToUpload);
+
+            Result result = HelperUtils.LinuxAppServiceUploadZip(zippedFileToUpload,
+                uploadMysqlKuduUrl, this._ftpUserName, this._ftpPassword);
+
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.uploadMysqlSplitZipFileCompleted, splitZipFileName) + Environment.NewLine);
+            }
+
+            return result;
+        }
+
+        private Result _ProcessUploadedMysqlSplitZipFiles()
+        {
+            string message = "Unable to porocess the uploaded MySQL file on desitnation Linux App Service.";
+            HelperUtils.WriteOutputWithNewLine("Procesing uploaded MySQL dump on Linux App Service...", this._progressViewRTextBox);
+
+            // Merge MySQL Multi-part zip files in Destination App service
+            if (!this.mergeSplitZipFiles())
+            {
+                return new Result(Status.Failed, message + " Error while merging MySQL split zip files.");
+            }
+
+            // Extract app data to /home/site/wwwroot/wp-content/ directory
+            if (!this.extractAppDataZipInDestinationApp())
+            {
+                return new Result(Status.Failed, message + "Error while extracting merged MySQL zip file.");
+            }
+
+            HelperUtils.WriteOutputWithNewLine("Sucessfully processed uploaded MySQL " +
+                "dump on Linux App Service...", this._progressViewRTextBox);
+
+            return new Result(Status.Completed, "Sucessfully processed uploaded MySQL " +
+                "dump on Linux App Service...");
+        }
+
+        private bool mergeSplitZipFiles()
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.mergedMysqlSplitZipFiles))
+            {
+                return true;
+            }
+
+            string mergeSplitZipCommand = Constants.MYSQL_MERGE_SPLLIT_FILES_COMAMND;
+            KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(mergeSplitZipCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
+
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.mergedMysqlSplitZipFiles + Environment.NewLine);
+                return true;
+            }
+            return false;
+        }
+
+        private bool extractAppDataZipInDestinationApp()
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.extractMysqlZipInDestinationApp))
+            {
+                return true;
+            }
+
+            string unzipMergedSplitFileCommand = Constants.UNZIP_MERGED_MYSQL_COMMAND;
+            KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(unzipMergedSplitFileCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
+
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.extractMysqlZipInDestinationApp + Environment.NewLine);
+                return true;
+            }
+            return false;
         }
 
         private Result _UploadMySqlDump()

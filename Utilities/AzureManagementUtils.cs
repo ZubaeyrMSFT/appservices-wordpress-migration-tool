@@ -60,7 +60,6 @@ namespace WordPressMigrationTool.Utilities
         {
             SubscriptionResource subscription = subscriptions.Get(subscriptionId);
             ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
-
             List<string> resourceGroupNames = new List<string>();
             
             foreach(ResourceGroupResource resourceGroup in resourceGroups)
@@ -78,7 +77,6 @@ namespace WordPressMigrationTool.Utilities
             SubscriptionResource subscription = subscriptions.Get(subscriptionId);
             ResourceGroupResource resourceGroup = subscription.GetResourceGroup(resourceGroupName);
             WebSiteCollection webSites = resourceGroup.GetWebSites();
-
             List<string> webSiteNames = new List<string>();
 
             foreach (WebSiteResource webSite in webSites)

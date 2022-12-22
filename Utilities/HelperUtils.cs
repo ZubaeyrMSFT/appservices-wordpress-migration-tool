@@ -109,7 +109,6 @@ namespace WordPressMigrationTool.Utilities
             Console.Write(message);
         }
 
-
         public static void WriteOutputWithRC(string message, RichTextBox? richTextBox)
         {
             if (richTextBox != null)
@@ -123,7 +122,6 @@ namespace WordPressMigrationTool.Utilities
                 }));
 
             }
-
             Console.Write("\r" + message);
         }
 
@@ -151,7 +149,8 @@ namespace WordPressMigrationTool.Utilities
                         // Embed Status message into UserAgent field
                         if (!String.IsNullOrEmpty(message))
                         {
-                            client.DefaultRequestHeaders.UserAgent.TryParseAdd(message);
+                            string userAgentValue = "WPMigrationTool/1.0 " + message;
+                            client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgentValue);
                         }
 
                         // Set Basic auth
@@ -167,7 +166,6 @@ namespace WordPressMigrationTool.Utilities
                         var myStreamReader = new StreamReader(responseStream, Encoding.UTF8);
                         var responseJSON = myStreamReader.ReadToEnd();
                         var responseData = JsonConvert.DeserializeObject<KuduCommandApiResponse>(responseJSON);
-
 
                         if (responseData != null && response.IsSuccessStatusCode)
                         {
@@ -292,6 +290,19 @@ namespace WordPressMigrationTool.Utilities
         public static List<string> GetDefaultDropdownList (string displayMsg)
         {
             return new List<string>() { displayMsg };
+        }
+
+        public static void RecursiveDeleteDirectory(string targetDir)
+        {
+            if (!Directory.Exists(targetDir))
+            {
+                return;
+            }
+            foreach (string dir in Directory.EnumerateDirectories(targetDir))
+            {
+                RecursiveDeleteDirectory(dir);
+            }
+            Directory.Delete(targetDir, true);
         }
     }
 }

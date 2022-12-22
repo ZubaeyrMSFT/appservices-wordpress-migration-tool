@@ -1,13 +1,10 @@
 ﻿using Azure.ResourceManager.AppService;
-using MySqlX.XDevAPI.Common;
 using System.Diagnostics;
 using WordPressMigrationTool.Utilities;
 using Azure.Storage.Blobs;
 using Ionic.Zip;
-using Renci.SshNet.Sftp;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage;
-using System.Transactions;
 
 namespace WordPressMigrationTool
 {
@@ -161,7 +158,7 @@ namespace WordPressMigrationTool
             }
             LinuxMySQLDataImportService linDBImportService = new LinuxMySQLDataImportService(destinationSiteResource, destinationSite.databaseHostname,
                 destinationSite.databaseUsername, destinationSite.databasePassword, newDatabaseName, destinationSite.webAppName,
-                destinationSite.ftpUsername, destinationSite.ftpPassword, this._progressViewRTextBox);
+                destinationSite.ftpUsername, destinationSite.ftpPassword, this._progressViewRTextBox, this._previousMigrationStatus, this._migrationStatusFilePath);
 
             Result result = linDBImportService.ImportData();
             if (result.status == Status.Completed)
@@ -204,12 +201,9 @@ namespace WordPressMigrationTool
             Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, 
                 destinationSite.ftpUsername, destinationSite.ftpPassword, destinationSite.webAppName);
 
-            System.Diagnostics.Debug.WriteLine("clear migration dir after clearappservicedirectory..");
-
             if (result.status == Status.Completed)
             {
                 File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.clearMigrationDirInDestinationSite, callOrder) + Environment.NewLine);
-                System.Diagnostics.Debug.WriteLine("after file.append in clear migrationdirindestinationsite 2 ");
             }
             return result;
         }
@@ -350,16 +344,17 @@ namespace WordPressMigrationTool
             if (!this.IsBlobStorageEnabledInDestinationSite(appSettings))
             {
                 File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
-                System.Diagnostics.Debug.WriteLine("no blob storage detected.");
                 return new Result(Status.Completed, "");
             }
 
             try
             {
+                HelperUtils.WriteOutputWithNewLine("Uploading Wordpress \"uploads\" to Blob storage...", this._progressViewRTextBox);
+
+                // This connection string needs to be retrieved using ARM api
                 string conn_string = String.Format("DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={0};AccountKey={1}", appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_NAME], appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_KEY]);
                 BlobServiceClient blobServiceClient = new BlobServiceClient(conn_string);
 
-                System.Diagnostics.Debug.WriteLine("previous migration blob container name is : " + this._previousMigrationBlobContainerName);
                 // If this is a new migration run, create a new blob container, else, use the previously created blob container.
                 string newBlobContainerName = this._previousMigrationBlobContainerName;
                 if (String.IsNullOrEmpty(newBlobContainerName))
@@ -410,7 +405,6 @@ namespace WordPressMigrationTool
                     int count = 0;
                     foreach (ZipEntry zipEntry in zipFile)
                     {
-                        System.Diagnostics.Debug.WriteLine("zipentry iteration count is: " + count.ToString() + " filename is : " + zipEntry.FileName);
                         count++;
                         if (!zipEntry.FileName.StartsWith(Constants.WP_UPLOADS_PREFIX) || zipEntry.IsDirectory || this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.UploadedWpBlob, zipEntry.FileName)))
                         {
@@ -420,7 +414,7 @@ namespace WordPressMigrationTool
                         // clear blobs local placeholder directory
                         if (Directory.Exists(blobUploadFilePath))
                         {
-                            this.RecursiveDeleteDirectory(blobUploadFilePath);
+                            HelperUtils.RecursiveDeleteDirectory(blobUploadFilePath);
                         }
                         Directory.CreateDirectory(blobUploadFilePath);
 
@@ -451,19 +445,6 @@ namespace WordPressMigrationTool
             {
                 return new Result(Status.Failed, "Could not upload WordPress content to Blob Storage. exception is " + ex.Message);
             }
-        }
-
-        private void RecursiveDeleteDirectory(string targetDir)
-        {
-            if (! Directory.Exists(targetDir))
-            {
-                return;
-            }
-            foreach ( string dir in Directory.EnumerateDirectories(targetDir))
-            {
-                RecursiveDeleteDirectory(dir);
-            }
-            Directory.Delete(targetDir, true);
         }
 
         public bool IsBlobStorageEnabledInDestinationSite(IDictionary<string, string> appSettings)

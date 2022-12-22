@@ -31,6 +31,7 @@ namespace WordPressMigrationTool
             this.InitializeMigrationStatusFile();
         }
 
+        // Initialize background workers to call ARM APIs asynchronously
         public void InitializeBackgroundWorkers()
         {
             this._linSubscriptionChangeWorker = new BackgroundWorker();
@@ -57,7 +58,6 @@ namespace WordPressMigrationTool
         private void GetSubscriptions()
         {
             this._subscriptions = AzureManagementUtils.GetSubscriptions();
-
             this.LinSubscriptions = new List<Subscription>();
             this.WinSubscriptions = new List<Subscription>();
 
@@ -67,11 +67,9 @@ namespace WordPressMigrationTool
                 {
                     continue;
                 }
-                System.Diagnostics.Debug.WriteLine("displayname is " + subscription.Data.DisplayName);
                 this.LinSubscriptions.Add(new Subscription(subscription.Data.DisplayName, subscription.Data.SubscriptionId));
                 this.WinSubscriptions.Add(new Subscription(subscription.Data.DisplayName, subscription.Data.SubscriptionId));
             }
-            System.Diagnostics.Debug.WriteLine("number of subscriptionNames is " + this.LinSubscriptions.Count().ToString());
 
             this.LinSubscriptions.Sort((x, y) => x.Name.CompareTo(y.Name));
             this.LinSubscriptions.Insert(0, new Subscription("Select a Subscription", ""));
@@ -87,17 +85,19 @@ namespace WordPressMigrationTool
 
         private void winSubscriptionChangeWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            string subscriptionId = e.Argument as string;
-
-            var resourceGroups = AzureManagementUtils.GetResourceGroupsInSubscription(subscriptionId, this._subscriptions);
-            resourceGroups.Sort();
+            List<string> resourceGroups = new List<string>();
+            if (e.Argument != null)
+            {
+                string subscriptionId = e.Argument as string;
+                resourceGroups = AzureManagementUtils.GetResourceGroupsInSubscription(subscriptionId, this._subscriptions);
+                resourceGroups.Sort();
+            }
             resourceGroups.Insert(0, "Select a Resource Group");
-            
             e.Result = resourceGroups;
         }
+
         private void winSubscriptionChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winSubscriptionChangeWorker_RunWorkerCompleted result is " + e.Result.ToString());
             if (e.Result != null)
             {
                 this.winResourceGroupComboBox.DataSource = e.Result as List<string>;
@@ -110,9 +110,9 @@ namespace WordPressMigrationTool
             this.enableWindowsDropdowns(true);
         }
 
+        // Asynchrounously retrieves resource groups for the selected subscription (windows)
         private void winSubscriptionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winSubscriptionComboBox_SelectedIndexChanged");
             if (this.winSubscriptionComboBox.SelectedValue == null)
                 return;
 
@@ -135,7 +135,6 @@ namespace WordPressMigrationTool
 
         private void linSubscriptionChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winSubscriptionChangeWorker_RunWorkerCompleted result is " + e.Result.ToString());
             if (e.Result != null)
             {
                 this.linuxResourceGroupComboBox.DataSource = e.Result as List<string>;
@@ -148,10 +147,9 @@ namespace WordPressMigrationTool
             this.enableLinuxDropdowns(true);
         }
 
+        // Asynchrounously retrieves resource groups for the selected subscription (linux)
         private void linuxSubscriptionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-            System.Diagnostics.Debug.WriteLine("winSubscriptionComboBox_SelectedIndexChanged");
             if (this.linuxSubscriptionComboBox.SelectedValue == null)
                 return;
 
@@ -163,11 +161,15 @@ namespace WordPressMigrationTool
 
         private void winRgChangeWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            List<string> arguments = e.Argument as List<string>;
-            string subscriptionId = arguments[0];
-            string resourceGroupName = arguments[1];
+            List<string> appServices = new List<string>();
+            if (e.Argument != null)
+            {
+                List<string> arguments = e.Argument as List<string>;
+                string subscriptionId = arguments[0];
+                string resourceGroupName = arguments[1];
 
-            List<string> appServices = AzureManagementUtils.GetAppServicesInResourceGroup(subscriptionId, resourceGroupName, this._subscriptions);
+                appServices = AzureManagementUtils.GetAppServicesInResourceGroup(subscriptionId, resourceGroupName, this._subscriptions);
+            }
             appServices.Sort();
             appServices.Insert(0, "Select a WordPress on Windows app");
 
@@ -176,23 +178,21 @@ namespace WordPressMigrationTool
 
         private void winRgChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winRgChangeWorker_RunWorkerCompleted result is " + e.Result.ToString());
             if (e.Result != null)
             {
                 this.winAppServiceComboBox.DataSource = e.Result as List<string>;
             }
             else
             {
-                this.linuxResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+                this.winAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Windows app");
             }
 
             this.enableWindowsDropdowns(true);
         }
 
+        // Asynchrounously retrieves app services for the selected resource group (windows)
         private void winResourceGroupComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winResourceGroupComboBox_SelectedIndexChanged");
-
             if (this.winSubscriptionComboBox.SelectedValue == null || this.winResourceGroupComboBox.SelectedValue == null)
                 return;
 
@@ -210,12 +210,17 @@ namespace WordPressMigrationTool
 
         private void linRgChangeWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            List<string> arguments = e.Argument as List<string>;
-            string subscriptionId = arguments[0];
-            string resourceGroupName = arguments[1];
+            List<string> appServices = new List<string>();
+            
+            if (e.Argument != null)
+            {
+                List<string> arguments = e.Argument as List<string>;
+                string subscriptionId = arguments[0];
+                string resourceGroupName = arguments[1];
 
-            List<string> appServices = AzureManagementUtils.GetAppServicesInResourceGroup(subscriptionId, resourceGroupName, this._subscriptions);
-            appServices.Sort();
+                appServices = AzureManagementUtils.GetAppServicesInResourceGroup(subscriptionId, resourceGroupName, this._subscriptions);
+                appServices.Sort();
+            }
             appServices.Insert(0, "Select a WordPress on Linux app");
 
             e.Result = appServices;
@@ -223,24 +228,21 @@ namespace WordPressMigrationTool
 
         private void linRgChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("winRgChangeWorker_RunWorkerCompleted result is " + e.Result.ToString());
             if (e.Result != null)
             {
                 this.linuxAppServiceComboBox.DataSource = e.Result as List<string>;
             }
             else
             {
-                this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+                this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
             }
 
             this.enableLinuxDropdowns(true);
         }
 
+        // Asynchrously gets app services for the selected resource groups (linux)
         private void linuxResourceGroupComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-            System.Diagnostics.Debug.WriteLine("linuxResourceGroupComboBox_SelectedIndexChanged");
-
             if (this.linuxSubscriptionComboBox.SelectedValue == null || this.linuxResourceGroupComboBox.SelectedValue == null)
                 return;
 
@@ -367,7 +369,6 @@ namespace WordPressMigrationTool
                 this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
                 progressViewUX.Show();
 
-                System.Diagnostics.Debug.WriteLine("sourcesite name is |" + sourceSiteInfo.webAppName + "|");
                 MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, previousMigrationBlobContainerName);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
