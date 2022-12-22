@@ -118,7 +118,7 @@ namespace WordPressMigrationTool
                 string caption = "Invalid Image Detected!";
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Question);
+                                     MessageBoxIcon.Warning);
                 if (result == DialogResult.Cancel)
                 {
                     return new Result(Status.Failed, "Stopping current migration.");
@@ -140,7 +140,7 @@ namespace WordPressMigrationTool
                 string caption = "Incomplete WordPress installation detected!";
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Question);
+                                     MessageBoxIcon.Warning);
                 
                 if (result == DialogResult.Cancel)
                 {
@@ -170,7 +170,7 @@ namespace WordPressMigrationTool
 
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Question);
+                                     MessageBoxIcon.Warning);
                 if (result == DialogResult.Cancel)
                 {
                     return new Result(Status.Failed, "Stopping current migration.");
@@ -214,7 +214,7 @@ namespace WordPressMigrationTool
 
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Question);
+                                     MessageBoxIcon.Warning);
                 if (result == DialogResult.Cancel)  
                 {
                     return new Result(Status.Failed, "Stopping current migration.");

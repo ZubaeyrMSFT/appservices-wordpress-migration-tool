@@ -359,7 +359,12 @@ namespace WordPressMigrationTool
                 string newBlobContainerName = this._previousMigrationBlobContainerName;
                 if (String.IsNullOrEmpty(newBlobContainerName))
                 {
-                    newBlobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower() + "-" + new Random().Next(0, 1000).ToString();
+                    int blobContainerLength = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].Length;
+                    if (blobContainerLength > 10 )
+                    {
+                        blobContainerLength = 10;
+                    }
+                    newBlobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower().Substring(0,blobContainerLength) + "-" + new Random().Next(0, 1000).ToString();
                     blobServiceClient.CreateBlobContainer(newBlobContainerName);
                     File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.previousMigrationBlobContainerName + newBlobContainerName + Environment.NewLine);
                 }

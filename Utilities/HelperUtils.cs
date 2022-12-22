@@ -150,7 +150,7 @@ namespace WordPressMigrationTool.Utilities
                         if (!String.IsNullOrEmpty(message))
                         {
                             string userAgentValue = "WPMigrationTool/1.0 " + message;
-                            client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgentValue);
+                            client.DefaultRequestHeaders.Add("User-Agent", userAgentValue);
                         }
 
                         // Set Basic auth
@@ -172,7 +172,9 @@ namespace WordPressMigrationTool.Utilities
                             return new KuduCommandApiResult(Status.Completed, responseData.Output, responseData.Error, responseData.ExitCode);
                         }
                     }
-                    catch { }
+                    catch (Exception ex) {
+                        return new KuduCommandApiResult(Status.Failed, ex.Message);
+                    }
 
                     trycount++;
                     if (trycount > Constants.MAX_APPDATA_UPLOAD_RETRIES)

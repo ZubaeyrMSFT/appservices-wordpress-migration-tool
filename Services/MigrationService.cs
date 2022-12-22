@@ -168,7 +168,7 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}); {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
+                string logMessage = String.Format("({0} {1} {2} {3} {4} {5} {6}) {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
