@@ -125,7 +125,7 @@ namespace WordPressMigrationTool.Utilities
             Console.Write("\r" + message);
         }
 
-        public static KuduCommandApiResult ExecuteKuduCommandApi(string inputCommand, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3, string message = "")
+        public static KuduCommandApiResult ExecuteKuduCommandApi(string inputCommand, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3, string message = "", int timeout = 600)
         {
             if (maxRetryCount <= 0)
             {
@@ -142,6 +142,7 @@ namespace WordPressMigrationTool.Utilities
                 {
                     try
                     {
+                        client.Timeout = TimeSpan.FromSeconds(timeout);
                         var jsonString = JsonConvert.SerializeObject(new { command = command, dir = "" });
                         HttpContent httpContent = new StringContent(jsonString);
                         httpContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
@@ -160,6 +161,7 @@ namespace WordPressMigrationTool.Utilities
                         HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, appServiceKuduCommandURL);
                         requestMessage.Content = httpContent;
                         HttpResponseMessage response = client.Send(requestMessage);
+                        System.Diagnostics.Debug.WriteLine(String.Format("kudu command api statuscode is {0}; output is {1}", response.StatusCode, response.Content.ReadAsStream()));
 
                         // Convert response to Json
                         var responseStream = response.Content.ReadAsStream();
@@ -219,7 +221,7 @@ namespace WordPressMigrationTool.Utilities
                         break;
                     }
 
-                    ExecuteKuduCommandApi(clearTargetDirCommand, ftpUsername, ftpPassword, appServiceName, Constants.MAX_APP_CLEAR_DIR_RETRIES);
+                    ExecuteKuduCommandApi(clearTargetDirCommand, ftpUsername, ftpPassword, appServiceName, Constants.MAX_APP_CLEAR_DIR_RETRIES, timeout: Constants.KUDU_API_TIMEOUT_SECONDS_LARGE);
                     ExecuteKuduCommandApi(createTargetDirCommand, ftpUsername, ftpPassword, appServiceName, Constants.MAX_RETRIES_COMMON);
                 }
                 catch (Exception e) {

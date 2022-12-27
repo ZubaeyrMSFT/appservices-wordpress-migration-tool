@@ -9,6 +9,7 @@ namespace WordPressMigrationTool.Utilities
 
         public const int KUDU_ZIP_API_MAX_UPLOAD_LIMIT = 100000000;     // 100 Million Bytes
         public const int BLOB_FILE_UPLOAD_LIMIT = 100000000;            // 100 Million Bytes
+        public const int KUDU_API_TIMEOUT_SECONDS_LARGE = 100000;
 
         public const string WIN_WPCONTENT_ZIP_FILENAME = "wpcontent.zip";
         public const string WIN_MYSQL_ZIP_FILENAME = "mysqldata.zip";
@@ -44,7 +45,6 @@ namespace WordPressMigrationTool.Utilities
         public const string APPSETTING_STORAGE_ACCOUNT_NAME = "STORAGE_ACCOUNT_NAME";
         public const string APPSETTING_STORAGE_ACCOUNT_KEY = "STORAGE_ACCOUNT_KEY";
 
-
         public const string LIN_APP_WP_CONFIG_PATH = "/home/site/wwwroot/wp-config.php";
         public const string LIN_APP_VERSIONPHP_FILE_PATH = "/home/site/wwwroot/wp-includes/version.php";
         public const string LIN_APP_WP_DEPLOYMENT_STATUS_FILE_PATH = "/home/wp-locks/wp_deployment_status.txt";
@@ -71,14 +71,14 @@ namespace WordPressMigrationTool.Utilities
         public const string MYSQL_TEMP_DIR_KUDU_API = "dev/migrate/mysql/";
         public const string MYSQL_TEMP_ZIP_PATH = LIN_APP_SVC_MIGRATE_DIR + "mysql-temp.zip";
         public const string MYSQL_CREATE_TEMP_DIR_COMMAND = "mkdir -p " + MYSQL_TEMP_DIR;
-        public const string MYSQL_MERGE_SPLLIT_FILES_COMAMND = "zip -FF " + MYSQL_TEMP_DIR + MYSQL_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + MYSQL_TEMP_ZIP_PATH;
+        public const string MYSQL_MERGE_SPLLIT_FILES_COMAMND = "zip -F " + MYSQL_TEMP_DIR + MYSQL_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + MYSQL_TEMP_ZIP_PATH;
         public const string UNZIP_MERGED_MYSQL_COMMAND = "yes | unzip " + MYSQL_TEMP_ZIP_PATH + " -d " + MYSQL_TEMP_DIR;
 
         public const string WPCONTENT_TEMP_DIR = LIN_APP_SVC_MIGRATE_DIR + "wpcontentsplit/";
         public const string WPCONTENT_TEMP_DIR_KUDU_API = "dev/migrate/wpcontentsplit/";
         public const string WPCONTENT_TEMP_ZIP_PATH = LIN_APP_SVC_MIGRATE_DIR + "wp-content-temp.zip";
         public const string WPCONTENT_CREATE_TEMP_DIR_COMMAND = "mkdir -p " + WPCONTENT_TEMP_DIR;
-        public const string WPCONTENT_MERGE_SPLLIT_FILES_COMAMND = "zip -FF " + WPCONTENT_TEMP_DIR + WPCONTENT_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + WPCONTENT_TEMP_ZIP_PATH;
+        public const string WPCONTENT_MERGE_SPLLIT_FILES_COMAMND = "zip -F " + WPCONTENT_TEMP_DIR + WPCONTENT_SPLIT_ZIP_FILE_NAME_PREFIX + ".zip --out " + WPCONTENT_TEMP_ZIP_PATH;
         public const string UNZIP_MERGED_WPCONTENT_COMMAND = "yes | unzip " + WPCONTENT_TEMP_ZIP_PATH + " -d " + LIN_APP_SVC_WPCONTENT_DIR;
 
         public const string CLEAR_APP_SERVICE_DIR_COMMAND = "rm -rf {0}";
@@ -87,7 +87,7 @@ namespace WordPressMigrationTool.Utilities
 
         public const string START_MIGRATION_APP_SETTING = "MIGRATION_IN_PROGRESS";
         public const string NEW_DATABASE_NAME_APP_SETTING = "MIGRATE_NEW_DATABASE_NAME";
-        public const string MYSQL_DUMP_FILE_PATH_APP_SETTING = "MIGRATE_MYSQL_DUMP_PATH";
+        public const string MYSQL_DUMP_FILE_APP_SETTING = "MIGRATE_MYSQL_DUMP_FILE";
 
         public const string FIRST_TIME_SETUP_COMPLETETED_MESSAGE = "FIRST_TIME_SETUP_COMPLETED";
         public const string IMPORT_SUCCESS_MESSAGE = "IMPORT_POST_PROCESSING_COMPLETED";

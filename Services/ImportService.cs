@@ -106,14 +106,14 @@ namespace WordPressMigrationTool
                     this.RevertDestinationSiteMigrationState(webAppResource);
                     return result;
                 }
-
+                
                 result = this.ClearMigrateDirInDestinationSite(destinationSite, "2");
                 if (result.status != Status.Completed)
                 {
                     this.RevertDestinationSiteMigrationState(webAppResource);
                     return result;
                 }
-
+                
                 result = this.RevertDestinationSiteMigrationState(webAppResource);
                 if (result.status != Status.Completed)
                 {
@@ -262,7 +262,7 @@ namespace WordPressMigrationTool
                     return new Result(Status.Failed, "Could not update App Settings of Destination site");
                 }
 
-                string[] appSettingsToRemove = { Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
+                string[] appSettingsToRemove = { Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_APP_SETTING };
                 if (!AzureManagementUtils.RemoveApplicationSettingForAppService(destinationSiteResource, appSettingsToRemove))
                 {
                     return new Result(Status.Failed, "Could not update App Settings of Destination site");
@@ -282,7 +282,7 @@ namespace WordPressMigrationTool
             {
                 try
                 {
-                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
+                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_APP_SETTING };
                     if (AzureManagementUtils.RemoveApplicationSettingForAppService(destinationSiteResource, appSettings))
                     {
                         return new Result(Status.Completed, "");
@@ -302,13 +302,13 @@ namespace WordPressMigrationTool
                 return new Result(Status.Completed, "Completed post processing of Import data in previous migration attempt.");
             }
 
-            Result result = this.UploadToBlobStorageIfEnabled(webAppResource);
+            Result result = this.StartPostProcessing(destinationSite, databaseName, webAppResource);
             if (result.status != Status.Completed)
             {
                 return result;
             }
 
-            result = this.StartPostProcessing(destinationSite, databaseName, webAppResource);
+            result = this.UploadToBlobStorageIfEnabled(webAppResource);
             if (result.status != Status.Completed)
             {
                 return result;
@@ -469,7 +469,7 @@ namespace WordPressMigrationTool
                 Dictionary<string, string> appSettings = new Dictionary<string, string>();
                 appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
                 appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, databaseName);
-                appSettings.Add(Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING, String.Format("{0}{1}", Constants.MYSQL_TEMP_DIR, Constants.WIN_MYSQL_SQL_FILENAME));
+                appSettings.Add(Constants.MYSQL_DUMP_FILE_APP_SETTING, Constants.WIN_MYSQL_SQL_FILENAME);
                 if (AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings))
                 {
                     return new Result(Status.Completed, "");
@@ -486,7 +486,7 @@ namespace WordPressMigrationTool
             {
                 try
                 {
-                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
+                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_APP_SETTING };
                     if (AzureManagementUtils.RemoveApplicationSettingForAppService(destinationSiteResource, appSettings))
                     {
                         return new Result(Status.Completed, "");

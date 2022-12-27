@@ -46,6 +46,8 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
+                this.LogMigrationStatusMessage("WordPressTestTool/1.0 ( test message .)");
+
                 ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._previousMigrationBlobContainerName);
@@ -87,8 +89,8 @@ namespace WordPressMigrationTool
 
         private Result GetSourceSiteInfo()
         {
-            HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database details " +
-                    "for Windows WordPress... ", this._progressViewRTextBox);
+            HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database details " +
+                    "for {0} app... ", this._sourceSiteInfo.webAppName), this._progressViewRTextBox);
             try
             {
                 WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName);
@@ -104,14 +106,15 @@ namespace WordPressMigrationTool
             }
             catch
             {
-                return new Result(Status.Failed, "Could not retrieve publishing profile and database connection string of " + this._sourceSiteInfo.webAppName + " appservice.");
+                return new Result(Status.Failed, "Could not retrieve publishing profile and database connection string of " + this._sourceSiteInfo.webAppName + " appservice. " +
+                    "Please select a WordPress on Windows source site with the default database connection string.");
             }
         }
 
         private Result GetDestinationSiteInfo()
         {
-            HelperUtils.WriteOutputWithNewLine("Retrieving WebApp publishing profile and database "
-                    + "details for Linux WordPress... ", this._progressViewRTextBox);
+            HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database "
+                    + "details for {0}...", this._destinationSiteInfo.webAppName), this._progressViewRTextBox);
             try
             {
                 WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName);
@@ -130,7 +133,8 @@ namespace WordPressMigrationTool
             }
             catch
             {
-                return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice.");
+                return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice. " +
+                    "Please check internet connectivity before trying again.");
             }
         }
 
@@ -168,7 +172,7 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("({0} {1} {2} {3} {4} {5} {6}) {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
+                string logMessage = String.Format("({0} {1} {2} {3} {4} {5} {6} {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 

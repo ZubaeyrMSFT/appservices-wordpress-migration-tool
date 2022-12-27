@@ -116,12 +116,12 @@ namespace WordPressMigrationTool
             {
                 return result;
             }
-
+            /*
             result = this._ProcessUploadedMysqlSplitZipFiles();
             if (result.status != Status.Completed)
             {
                 return result;
-            }
+            }*/
 
             timer.Stop();
             HelperUtils.WriteOutputWithNewLine("Sucessfully migrated MySQL data to destination site... " +

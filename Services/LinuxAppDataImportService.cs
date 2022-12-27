@@ -63,12 +63,6 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            result = this._ProcessSplitZipFiles();
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
             timer.Stop();
             HelperUtils.WriteOutputWithNewLine("Sucessfully uploaded App Service data to Linux App Service... " +
                 "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
@@ -142,88 +136,6 @@ namespace WordPressMigrationTool
             }
 
             return result;
-        }
-
-        private Result _ProcessSplitZipFiles()
-        {
-            string message = "Unable to porocess the uploaded App data on Linux App Services.";
-            HelperUtils.WriteOutputWithNewLine("Procesing uploaded App data on Linux App Service...", this._progressViewRTextBox);
-
-            // Merge Multi-part zip files in Destination App service
-            if (!this.mergeSplitZipFiles())
-            {
-                return new Result(Status.Failed, message + " Error while merging splitted zip files.");
-            }
-
-            if (!this.deleteSplitZipFilesDirInDestinationApp())
-            {
-                return new Result(Status.Failed, message + " Error while deleting destination split zip files.");
-            }
-
-            // Extract app data to /home/site/wwwroot/wp-content/ directory
-            if (!this.extractAppDataZipInDestinationApp())
-            {
-                return new Result(Status.Failed, message + "Error while extracting merged zip file.");
-            }
-
-            HelperUtils.WriteOutputWithNewLine("Sucessfully processed uploaded App " +
-                "data on Linux App Service...", this._progressViewRTextBox);
-
-            return new Result(Status.Completed, "Sucessfully processed uploaded App " +
-                "data on Linux App Service...");
-        }
-
-        private bool mergeSplitZipFiles ()
-        {
-            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.mergedAppDataSplitZipFiles))
-            {
-                return true;
-            }
-
-            string mergeSplitZipCommand = Constants.WPCONTENT_MERGE_SPLLIT_FILES_COMAMND;
-            KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(mergeSplitZipCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-
-            if (result.status == Status.Completed)
-            {
-                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.mergedAppDataSplitZipFiles + Environment.NewLine);
-                return true;
-            }
-            return false;
-        }
-
-        private bool deleteSplitZipFilesDirInDestinationApp()
-        {
-            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.deleteAppDataSplitZipFilesInDestinationApp))
-            {
-                return true;
-            }
-
-            Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_WPCONTENT_DIR, this._ftpUserName, this._ftpPassword, this._appServiceName);
-
-            if (result.status == Status.Completed)
-            {
-                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.deleteAppDataSplitZipFilesInDestinationApp + Environment.NewLine);
-                return true;
-            }
-            return false;
-        }
-
-        private bool extractAppDataZipInDestinationApp()
-        {
-            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.extractAppDataZipInDestinationApp))
-            {
-                return true;
-            }
-
-            string unzipMergedSplitFileCommand = Constants.UNZIP_MERGED_WPCONTENT_COMMAND;
-            KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(unzipMergedSplitFileCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-
-            if (result.status == Status.Completed)
-            {
-                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.extractAppDataZipInDestinationApp + Environment.NewLine);
-                return true;
-            }
-            return false;
         }
 
         private Result _SplitWpContentZip()
