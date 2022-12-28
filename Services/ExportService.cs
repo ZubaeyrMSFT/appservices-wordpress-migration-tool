@@ -60,13 +60,13 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
-                System.Diagnostics.Debug.WriteLine("after export app data");
+
                 result = ExportDatbaseContent(sourceSite);
                 if (result.status == Status.Failed || result.status == Status.Cancelled)
                 {
                     return result;
                 }
-                System.Diagnostics.Debug.WriteLine("after export database data");
+
                 if (!this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
                 {
                     File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportCompleted + Environment.NewLine);
@@ -95,9 +95,7 @@ namespace WordPressMigrationTool
             Result result = winAppExpService.ExportData();
             if (result.status == Status.Completed)
             {
-                System.Diagnostics.Debug.WriteLine("before appendall error");
                 File.AppendAllText(migrationStatusFile, Constants.StatusMessages.exportAppDataCompleted + Environment.NewLine);
-                System.Diagnostics.Debug.WriteLine("after appendall error");
             }
             return result;
         }
@@ -110,7 +108,6 @@ namespace WordPressMigrationTool
                 HelperUtils.WriteOutputWithNewLine("Source Site Database Data downloaded in previous migration.", this._progressViewRTextBox);
                 return new Result(Status.Completed, "Database exported in previous migration attempt.");
             }
-            System.Diagnostics.Debug.WriteLine("starting db export");
             WindowsMySQLDataExportService winDBExpService = new WindowsMySQLDataExportService(sourceSite.databaseHostname,
                 sourceSite.databaseUsername, sourceSite.databasePassword, sourceSite.databaseName, null, 
                 this._progressViewRTextBox);

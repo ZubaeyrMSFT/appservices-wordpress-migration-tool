@@ -196,7 +196,7 @@ namespace WordPressMigrationTool
                     this._progressViewRTextBox);
             }
 
-            File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadAppDataSplitZipFilesCompleted + Environment.NewLine);
+            File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadMysqlSplitZipFilesCompleted + Environment.NewLine);
             return new Result(Status.Completed, "MySQL split zip files uploaded successfully...");
         }
 
