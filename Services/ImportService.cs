@@ -13,15 +13,13 @@ namespace WordPressMigrationTool
         private RichTextBox? _progressViewRTextBox;
         private string[]  _previousMigrationStatus;
         private string _migrationStatusFilePath;
-        private string _previousMigrationBlobContainerName;
 
         public ImportService() { }
 
-        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, string previousMigrationBlobContainerName)
+        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus)
         {
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
-            this._previousMigrationBlobContainerName = previousMigrationBlobContainerName;
         }
 
         public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
@@ -355,33 +353,16 @@ namespace WordPressMigrationTool
                 string conn_string = String.Format("DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={0};AccountKey={1}", appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_NAME], appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_KEY]);
                 BlobServiceClient blobServiceClient = new BlobServiceClient(conn_string);
 
-                // If this is a new migration run, create a new blob container, else, use the previously created blob container.
-                string newBlobContainerName = this._previousMigrationBlobContainerName;
-                if (String.IsNullOrEmpty(newBlobContainerName))
-                {
-                    int blobContainerLength = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].Length;
-                    if (blobContainerLength > 10 )
-                    {
-                        blobContainerLength = 10;
-                    }
-                    newBlobContainerName = appSettings[Constants.APPSETTING_BLOB_CONTAINER_NAME].ToLower().Substring(0,blobContainerLength) + "-" + new Random().Next(0, 1000).ToString();
-                    blobServiceClient.CreateBlobContainer(newBlobContainerName);
-                    File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.previousMigrationBlobContainerName + newBlobContainerName + Environment.NewLine);
-                }
-
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(newBlobContainerName);
+                // get blob container resource
+                string blobContainerName = AzureManagementUtils.GetWebSiteApplicationSettings(destinationSiteResource)[Constants.APPSETTING_BLOB_CONTAINER_NAME];
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
+                blobContainerClient.SetAccessPolicy(accessType: PublicAccessType.Blob);
 
                 // Upload WordPress "wp-content/uploads" folder to blob container
                 Result result = this.UploadWpContentBlobs(blobContainerClient);
                 if (result.status != Status.Completed)
                 {
                     return result;
-                }
-
-                // Update BLOB_CONTAINER_NAME appsetting on destination site
-                if (!AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, Constants.APPSETTING_BLOB_CONTAINER_NAME, newBlobContainerName))
-                {
-                    return new Result(Status.Failed, "Could not update BLOB_CONTAINER_NAME appsetting on destination site...");
                 }
 
                 File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
@@ -427,7 +408,8 @@ namespace WordPressMigrationTool
                         string zipEntryFileName = System.IO.Path.GetFileName(zipEntry.FileName);
                         zipEntry.Extract(blobUploadFilePath, ExtractExistingFileAction.OverwriteSilently);
 
-                        BlobClient blobClient = blobContainerClient.GetBlobClient(targetPath);
+                        // add wp-content/ suffix since targetpath begins with uploads/..
+                        BlobClient blobClient = blobContainerClient.GetBlobClient("wp-content/" + targetPath);
                         
                         // Defines blob chunk size limit
                         StorageTransferOptions transferOptions = new StorageTransferOptions();
@@ -502,6 +484,12 @@ namespace WordPressMigrationTool
 
         public Result WaitForPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
         {
+            Result result = this.InitializeImportStatusFileOnDestinationApp(destinationSite);
+            if (result.status != Status.Completed)
+            {
+                return result;
+            }
+
             string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
             Stopwatch timer = Stopwatch.StartNew();
             int maxRetryCount = 2000;
@@ -533,6 +521,19 @@ namespace WordPressMigrationTool
             timer.Stop();
             HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
             return new Result(Status.Failed, "Unable to complete post processing of Import on destination site.");
+        }
+
+        private Result InitializeImportStatusFileOnDestinationApp(SiteInfo destinationSiteInfo)
+        {
+            string removeLineCommand = "sed -i '/{0}/d' " + Constants.LIN_APP_DB_STATUS_FILE_PATH;
+            KuduCommandApiResult removeFailureMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_FAILURE_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
+            KuduCommandApiResult removeSuccessMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_SUCCESS_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
+
+            if (removeFailureMessageResult.status != Status.Completed || removeSuccessMessageResult.status != Status.Completed)
+            {
+                return new Result(Status.Failed, "Couldn't initialize import status file on " + destinationSiteInfo.webAppName + " app.");
+            }
+            return new Result(Status.Completed, "");
         }
     }
 }
