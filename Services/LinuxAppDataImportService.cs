@@ -70,6 +70,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "Successfully uploaded App Service data to destination site.");
         }
 
+        // Uploads App data split-zip files to destination app
         private Result _UploadSplitZipFiles()
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.uploadAppDataSplitZipFilesCompleted))
@@ -105,6 +106,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "App data split zip files uploaded successfully...");
         }
 
+        // Uploads given split-zip file to destination app
         private Result _UploadSplitZipFileToAppService(string splitZipFileName)
         {
             if (this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.uploadAppDataSplitZipFileCompleted, splitZipFileName)))
@@ -138,6 +140,7 @@ namespace WordPressMigrationTool
             return result;
         }
 
+        // Splits exported App data zip into smaller split-zip files of ~25MB each
         private Result _SplitWpContentZip()
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.splitWpContentZipCompleted))

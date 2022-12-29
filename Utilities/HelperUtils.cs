@@ -26,6 +26,7 @@ namespace WordPressMigrationTool.Utilities
             return null;
         }
 
+        // Returns Kudu API URL for the given appservice
         public static string GetKuduApiForCommandExec(string appServiceName)
         {
             if (!string.IsNullOrWhiteSpace(appServiceName))
@@ -34,7 +35,6 @@ namespace WordPressMigrationTool.Utilities
             }
             return null;
         }
-
 
         public static string GetMySQLConnectionStringForExternalMySQLClientTool(string serverHostName, 
             string username, string password, string databaseName, string? charset)
@@ -55,6 +55,7 @@ namespace WordPressMigrationTool.Utilities
             return mysqlConnectionString;
         }
 
+        // Parses Database connection string of windows app service to get DB info (hostname, username, password and database name)
         public static void ParseAndUpdateDatabaseConnectionStringForWinAppService(SiteInfo sourceSite, string databaseConnectionString)
         {
             string[] splits = databaseConnectionString.Split(';');
@@ -81,6 +82,7 @@ namespace WordPressMigrationTool.Utilities
             }
         }
 
+        // Deletes given input file on local machine
         public static void DeleteFileIfExists(string filePath)
         {
             if (File.Exists(filePath))
@@ -89,6 +91,7 @@ namespace WordPressMigrationTool.Utilities
             }
         }
 
+        // Writes given message to the input richTextBox in a new line
         public static void WriteOutputWithNewLine(string message, RichTextBox? richTextBox)
         {
             if (richTextBox != null)
@@ -99,6 +102,7 @@ namespace WordPressMigrationTool.Utilities
             Console.WriteLine(message);
         }
 
+        // Writes message to input richTextBox
         public static void WriteOutput(string message, RichTextBox? richTextBox)
         {
             if (richTextBox != null)
@@ -109,6 +113,7 @@ namespace WordPressMigrationTool.Utilities
             Console.Write(message);
         }
 
+        // Replaces last line of richTextBox with input message
         public static void WriteOutputWithRC(string message, RichTextBox? richTextBox)
         {
             if (richTextBox != null)
@@ -125,6 +130,7 @@ namespace WordPressMigrationTool.Utilities
             Console.Write("\r" + message);
         }
 
+        // Calls Kudu Command API to execute the given command on app service 
         public static KuduCommandApiResult ExecuteKuduCommandApi(string inputCommand, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = 3, string message = "", int timeout = 600)
         {
             if (maxRetryCount <= 0)
@@ -192,6 +198,7 @@ namespace WordPressMigrationTool.Utilities
             return new KuduCommandApiResult(Status.Failed);
         }
 
+        // Clears input directory on a given app service
         public static Result ClearAppServiceDirectory(string targetFolder, string ftpUsername, string ftpPassword, string appServiceName, int maxRetryCount = Constants.MAX_APP_CLEAR_DIR_RETRIES)
         {
             Status result = Status.Failed;
@@ -212,6 +219,7 @@ namespace WordPressMigrationTool.Utilities
             {
                 try
                 {
+                    // call Kudu Command API to delete the input directory
                     KuduCommandApiResult checkTargetDirEmptyResult = ExecuteKuduCommandApi(listTargetDirCommand, ftpUsername, ftpPassword, appServiceName, Constants.MAX_APP_CLEAR_DIR_RETRIES);
                     if (checkTargetDirEmptyResult.exitCode == 0 && String.IsNullOrEmpty(checkTargetDirEmptyResult.output))
                     {
@@ -235,7 +243,7 @@ namespace WordPressMigrationTool.Utilities
             return new Result(result, message);
         }
 
-
+        // Uploads zip file to the destination linux app service using kudu zip API
         public static Result LinuxAppServiceUploadZip(string zipFilePath, string kuduUploadUrl, string ftpUsername, string ftpPassword)
         {
             Status result = Status.Failed;
@@ -296,6 +304,7 @@ namespace WordPressMigrationTool.Utilities
             return new List<string>() { displayMsg };
         }
 
+        // Deletes input directory on local machine
         public static void RecursiveDeleteDirectory(string targetDir)
         {
             if (!Directory.Exists(targetDir))

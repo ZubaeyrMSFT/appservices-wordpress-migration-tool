@@ -55,6 +55,7 @@ namespace WordPressMigrationTool
             this._winRgChangeWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.winRgChangeWorker_RunWorkerCompleted);
         }
 
+        // Retreives Subscriptions using the default Azure credentials via ARM API
         private void GetSubscriptions()
         {
             this._subscriptions = AzureManagementUtils.GetSubscriptions();
@@ -96,6 +97,7 @@ namespace WordPressMigrationTool
             e.Result = resourceGroups;
         }
 
+        // Updates Windows resource group dropdown with those in the selected subscription
         private void winSubscriptionChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result != null)
@@ -110,6 +112,7 @@ namespace WordPressMigrationTool
             this.enableWindowsDropdowns(true);
         }
 
+        // This function is called on windows subscription dropdown value change
         // Asynchrounously retrieves resource groups for the selected subscription (windows)
         private void winSubscriptionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -133,6 +136,7 @@ namespace WordPressMigrationTool
             e.Result = resourceGroups;
         }
 
+        // Updates Windows resource group dropdown with those in the selected subscriptio
         private void linSubscriptionChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result != null)
@@ -147,6 +151,7 @@ namespace WordPressMigrationTool
             this.enableLinuxDropdowns(true);
         }
 
+        // This function is called on linux subscription dropdown value change
         // Asynchrounously retrieves resource groups for the selected subscription (linux)
         private void linuxSubscriptionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -176,6 +181,7 @@ namespace WordPressMigrationTool
             e.Result = appServices;
         }
 
+        // Updates Windows app service dropdown with those in the selected resource group
         private void winRgChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result != null)
@@ -190,6 +196,7 @@ namespace WordPressMigrationTool
             this.enableWindowsDropdowns(true);
         }
 
+        // This function is called on windows resource group dropdown value change
         // Asynchrounously retrieves app services for the selected resource group (windows)
         private void winResourceGroupComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -226,6 +233,7 @@ namespace WordPressMigrationTool
             e.Result = appServices;
         }
 
+        // Updates Linux app service dropdown with those in the selected resource group
         private void linRgChangeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result != null)
@@ -240,6 +248,7 @@ namespace WordPressMigrationTool
             this.enableLinuxDropdowns(true);
         }
 
+        // This function is called on linux resource group dropdown value change
         // Asynchrously gets app services for the selected resource groups (linux)
         private void linuxResourceGroupComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {

@@ -100,6 +100,7 @@ namespace WordPressMigrationTool
             }
         }
 
+        // Checks if Destination site's image is an official WordPress on Linux image and validates first time installation status
         private Result ValidateLinuxSite()
         {
             HelperUtils.WriteOutputWithNewLine(String.Format("Validating destination site ({0})...", this._destinationSiteInfo.webAppName), this._progressViewRTextBox);
@@ -180,6 +181,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "");
         }
 
+        // gets WordPress version from wp-includes/version.php file for the given site
         private string GetWpVersion(string wpRootDir, SiteInfo siteInfo)
         {
             KuduCommandApiResult getVersionFileResullt = HelperUtils.ExecuteKuduCommandApi("cat " + wpRootDir + "wp-includes/version.php", siteInfo.ftpUsername,

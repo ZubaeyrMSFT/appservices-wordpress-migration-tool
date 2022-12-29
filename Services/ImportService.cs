@@ -5,6 +5,8 @@ using Azure.Storage.Blobs;
 using Ionic.Zip;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage;
+using MySqlX.XDevAPI;
+using System;
 
 namespace WordPressMigrationTool
 {
@@ -42,8 +44,8 @@ namespace WordPressMigrationTool
             {
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
-            WebSiteResource webAppResource = null;
 
+            WebSiteResource webAppResource = null;
             this._migrationStatusFilePath= Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
 
             try
@@ -58,6 +60,7 @@ namespace WordPressMigrationTool
                 timer.Stop();
 
                 this.ClearImportFilesDirLocal();
+
                 Result result = this.TriggerDestinationSiteMigrationState(webAppResource);
                 if (result.status != Status.Completed)
                 {
@@ -71,7 +74,7 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
-                result = this.ValidateWPRootDirInDestinationSite(destinationSite);
+                result = this.ValidateWPRootInDestinationSite(destinationSite);
                 if (result.status != Status.Completed)
                 {
                     this.RevertDestinationSiteMigrationState(webAppResource);
@@ -92,6 +95,7 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
+                // Update DATABASE_NAME app setting to the new DB name
                 if (!this.UpdateDatabaseNameAppSetting(webAppResource, destinationSite))
                 {
                     this.RevertDestinationSiteMigrationState(webAppResource);
@@ -131,6 +135,7 @@ namespace WordPressMigrationTool
             }
         }
 
+        // Uploads App data zip file in chunks of ~25MB to the destination app service
         private Result ImportAppServiceData(SiteInfo destinationSite)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.importAppServiceDataCompleted))
@@ -148,6 +153,7 @@ namespace WordPressMigrationTool
             return result;
         }
 
+        // Uploads Database dump in chunks of ~25MB to the destination app service
         private Result ImportDatabaseContent(SiteInfo destinationSite, string newDatabaseName, WebSiteResource destinationSiteResource)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.importDatabaseContentCompleted))
@@ -166,6 +172,7 @@ namespace WordPressMigrationTool
             return result;
         }
 
+        // Clears directories that hold split zip files of App data and MySQL dump
         private void ClearImportFilesDirLocal()
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.clearImportFilesLocalDir))
@@ -187,6 +194,8 @@ namespace WordPressMigrationTool
             File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.clearImportFilesLocalDir + Environment.NewLine);
         }
 
+
+        // Clears /home/dev/migrate directory of the destination app service
         private Result ClearMigrateDirInDestinationSite(SiteInfo destinationSite, string callOrder)
         {
             if (this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.clearMigrationDirInDestinationSite, callOrder)))
@@ -206,7 +215,9 @@ namespace WordPressMigrationTool
             return result;
         }
 
-        private Result ValidateWPRootDirInDestinationSite(SiteInfo destinationSite)
+        // Verifies WordPress code and asserts that the destination WordPress app has completed its
+        // first time installation (WordPress installation, configuring AFD, CDN and Blob Storage if enabled, etc)
+        private Result ValidateWPRootInDestinationSite(SiteInfo destinationSite)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.validateWPRootDirInDestinationSite))
             {
@@ -230,6 +241,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "");
         }
 
+        // Updates DATABASE_NAME app setting of destination app to source WordPress app's DB name
         private bool UpdateDatabaseNameAppSetting(WebSiteResource webAppResource, SiteInfo destinationSite)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.updateDatabaseNameAppSetting))
@@ -249,6 +261,7 @@ namespace WordPressMigrationTool
             return false;
         }
 
+        // Adds MIGRATION_IN_PROGRESS=true app setting to destination app service
         private Result TriggerDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
         {
             try
@@ -273,6 +286,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "");
         }
 
+        // Removes MIGRATION_IN_PROGRESS app setting in destination app service
         private Result RevertDestinationSiteMigrationState(WebSiteResource destinationSiteResource)
         {
             int retriesCount = 1;
@@ -293,6 +307,7 @@ namespace WordPressMigrationTool
                 "application settings on Linux App Service.");
         }
 
+        // Processes App Data and MySQL dump uploaded to destination app
         public Result PostProcessingImport(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.postProcessingImportCompleted))
@@ -300,18 +315,21 @@ namespace WordPressMigrationTool
                 return new Result(Status.Completed, "Completed post processing of Import data in previous migration attempt.");
             }
 
+            // triggers Migration script on destination app
             Result result = this.StartPostProcessing(destinationSite, databaseName, webAppResource);
             if (result.status != Status.Completed)
             {
                 return result;
             }
 
+            // Uploads WordPress Uploads folder to Blob container
             result = this.UploadToBlobStorageIfEnabled(webAppResource);
             if (result.status != Status.Completed)
             {
                 return result;
             }
 
+            // waits for migration script to finish execution on destination app service
             result = this.WaitForPostProcessing(destinationSite, databaseName, webAppResource);
             if (result.status != Status.Completed)
             {
@@ -319,6 +337,7 @@ namespace WordPressMigrationTool
                 return result;
             }
 
+            // Removes app settings that trigger migration script
             result = this.StopPostProcessing(destinationSite, databaseName, webAppResource);
             if (result.status != Status.Completed)
             {
@@ -330,6 +349,7 @@ namespace WordPressMigrationTool
             return result;
         }
 
+        //Initializes Blob Container and uploads WordPress uploads folder
         public Result UploadToBlobStorageIfEnabled(WebSiteResource destinationSiteResource)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.UploadToBlobStorageIfEnabled))
@@ -353,9 +373,13 @@ namespace WordPressMigrationTool
                 string conn_string = String.Format("DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={0};AccountKey={1}", appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_NAME], appSettings[Constants.APPSETTING_STORAGE_ACCOUNT_KEY]);
                 BlobServiceClient blobServiceClient = new BlobServiceClient(conn_string);
 
-                // get blob container resource
+                // get blob container name
                 string blobContainerName = AzureManagementUtils.GetWebSiteApplicationSettings(destinationSiteResource)[Constants.APPSETTING_BLOB_CONTAINER_NAME];
                 BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(blobContainerName);
+                if (!blobContainerClient.Exists())
+                {
+                    blobContainerClient.Create();
+                }
                 blobContainerClient.SetAccessPolicy(accessType: PublicAccessType.Blob);
 
                 // Upload WordPress "wp-content/uploads" folder to blob container
@@ -368,12 +392,13 @@ namespace WordPressMigrationTool
                 File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.UploadToBlobStorageIfEnabled + Environment.NewLine);
                 return new Result(Status.Completed, "");
             }
-            catch
+            catch (Exception ex)
             {
-                return new Result(Status.Failed, "Could not upload WordPress content to Blob Storage.");
+                return new Result(Status.Failed, "Could not upload WordPress content to Blob Storage due to the exception : " + ex.Message);
             }
         }
 
+        // Uploads WordPress Uploads to given blob container
         private Result UploadWpContentBlobs(BlobContainerClient blobContainerClient)
         {
             if (this._previousMigrationStatus.Contains(Constants.StatusMessages.UploadWpContentBlobsCompleted))
@@ -443,6 +468,7 @@ namespace WordPressMigrationTool
                 && appSettings.ContainsKey(Constants.APPSETTING_STORAGE_ACCOUNT_KEY);
         }
 
+        // Adds app settings to destination appthat trigger migration script on container restart
         public Result StartPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
         {
             try
@@ -461,6 +487,7 @@ namespace WordPressMigrationTool
             return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
         }
 
+        // removes app settings from destination app service that trigger migration script
         public Result StopPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource destinationSiteResource)
         {
             int retiresCount = 1;
@@ -482,6 +509,7 @@ namespace WordPressMigrationTool
                 "App Settings used for database import trigger...");
         }
 
+        // Waits for migration script on destination app to execute
         public Result WaitForPostProcessing(SiteInfo destinationSite, string databaseName, WebSiteResource webAppResource)
         {
             Result result = this.InitializeImportStatusFileOnDestinationApp(destinationSite);
@@ -523,6 +551,9 @@ namespace WordPressMigrationTool
             return new Result(Status.Failed, "Unable to complete post processing of Import on destination site.");
         }
 
+        // Removes IMPORT_POST_PROCESSING_FAILED/IMPORT_POST_PROCESSING_SUCCESS messages from 
+        // import_status.txt file on destination app prior to polling for these messages
+        // this ensures any such messages added in previous migration runs are not read.
         private Result InitializeImportStatusFileOnDestinationApp(SiteInfo destinationSiteInfo)
         {
             string removeLineCommand = "sed -i '/{0}/d' " + Constants.LIN_APP_DB_STATUS_FILE_PATH;

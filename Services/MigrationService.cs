@@ -44,8 +44,6 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
-                this.LogMigrationStatusMessage("WordPressTestTool/1.0 ( test message .)");
-
                 ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
@@ -85,6 +83,7 @@ namespace WordPressMigrationTool
             }
         }
 
+        // retrieves source site's ftp and database credentials (from database connection 'defaultConnection')
         private Result GetSourceSiteInfo()
         {
             HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database details " +
@@ -109,6 +108,7 @@ namespace WordPressMigrationTool
             }
         }
 
+        // retrieves destination site's ftp credentials and other app settings
         private Result GetDestinationSiteInfo()
         {
             HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database "
@@ -136,6 +136,8 @@ namespace WordPressMigrationTool
             }
         }
 
+        // Adds source and destination site info to migration status file 
+        // which is used when detecting and resuming a previous migration
         private Result InitializeMigrationStatusFile()
         {
             string statusFilePath = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
@@ -170,7 +172,8 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                string logMessage = String.Format("({0} {1} {2} {3} {4} {5} {6} {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
+                //
+                string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}; {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
 
@@ -194,18 +197,22 @@ namespace WordPressMigrationTool
             }
         }
 
+        // Sends a dummy Kudu api with input log message embedded in userAgent field
+        // this kudu api call is logged into Kusto.
         private void LogMigrationStatusMessage(string logMessage)
         {
             KuduCommandApiResult result = HelperUtils.ExecuteKuduCommandApi(String.Format(Constants.LIST_DIR_COMMAND, "/home"), this._destinationSiteInfo.ftpUsername, this._destinationSiteInfo.ftpPassword, this._destinationSiteInfo.webAppName, message: logMessage);
             System.Diagnostics.Debug.WriteLine(String.Format("logging status is {0}; exitcode is {1}; output is {2}", result.status.ToString(), result.exitCode.ToString(), result.output));
         }
 
+        // clears local migration data
         private void CleanLocalTempFiles()
         {
             string localDataExportDirectory = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             HelperUtils.RecursiveDeleteDirectory(localDataExportDirectory);
         }
 
+        // Clears /home/dev/migrate directory of destination app service
         private Result CleanDestinationAppTempFiles(SiteInfo destinationSite)
         {
             return HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_MIGRATE_DIR, destinationSite.ftpUsername,
