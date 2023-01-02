@@ -73,10 +73,10 @@ namespace WordPressMigrationTool
             }
 
             this.LinSubscriptions.Sort((x, y) => x.Name.CompareTo(y.Name));
-            this.LinSubscriptions.Insert(0, new Subscription("Select a Subscription", ""));
+            this.LinSubscriptions.Insert(0, new Subscription("Select a Subscription", " "));
 
             this.WinSubscriptions.Sort((x, y) => x.Name.CompareTo(y.Name));
-            this.WinSubscriptions.Insert(0, new Subscription("Select a Subscription", ""));
+            this.WinSubscriptions.Insert(0, new Subscription("Select a Subscription", " "));
         }
 
         private string getSubscriptionResourceId (string subscriptionId)

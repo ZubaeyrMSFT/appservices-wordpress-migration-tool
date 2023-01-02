@@ -112,7 +112,7 @@ namespace WordPressMigrationTool
             }
 
             // Verify if the destination site uses an official WordPress on Linux image.
-            if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION && !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
+            if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION || !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
             {
                 string message = String.Format("The destination site ({0}) doesn't use an official WordPress on Linux image. This may cause the migration to fail. " +
                     "Do you want to continue?", this._destinationSiteInfo.webAppName);
