@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WordPressMigrationTool.Utilities;
 using WordPressMigrationTool.Views;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WordPressMigrationTool
 {
@@ -21,14 +22,41 @@ namespace WordPressMigrationTool
 
         public MigrationUX()
         {
-            GetSubscriptions();
-            InitializeBackgroundWorkers();
             InitializeComponent();
+
+            // Dsiable dropdowns and migrate button while initializing window and ARM api calls
+            ToggleDropdownStates(false);
+            InitializeMigrationWindow();
+            GetSubscriptions();
+
+            // Initialize background workers for running async operations on dropdown value change to unblock UI
+            InitializeBackgroundWorkers();
+            
             this.progressViewUX = new ProgressUX();
             progressViewUX.Hide();
 
+            //enable dropdowns and migrate button
+            ToggleDropdownStates(true);
+            InitializeMigrationStatusFile();
+        }
+
+        private void InitializeMigrationWindow()
+        {
+            // show Migration window
             this.Show();
-            this.InitializeMigrationStatusFile();
+
+            // display popup message box
+            new Thread(() => MessageBox.Show("Authenticate with Azure in the popup browser window. Click OK after authenticating to continue migration.", "", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, 
+                                                 MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000)).Start();
+            
+            // One-time azure login
+            ShellExecute.Login("az login");
+        }
+
+        private void ToggleDropdownStates(bool state)
+        {
+            enableLinuxDropdowns(state);
+            enableWindowsDropdowns(state);
         }
 
         // Initialize background workers to call ARM APIs asynchronously
@@ -77,6 +105,14 @@ namespace WordPressMigrationTool
 
             this.WinSubscriptions.Sort((x, y) => x.Name.CompareTo(y.Name));
             this.WinSubscriptions.Insert(0, new Subscription("Select a Subscription", " "));
+
+            this.winSubscriptionComboBox.DataSource = this.WinSubscriptions;
+            this.winSubscriptionComboBox.DisplayMember = "Name";
+            this.winSubscriptionComboBox.ValueMember = "Id";
+
+            this.linuxSubscriptionComboBox.DataSource = this.LinSubscriptions;
+            this.linuxSubscriptionComboBox.DisplayMember = "Name";
+            this.linuxSubscriptionComboBox.ValueMember = "Id";
         }
 
         private string getSubscriptionResourceId (string subscriptionId)

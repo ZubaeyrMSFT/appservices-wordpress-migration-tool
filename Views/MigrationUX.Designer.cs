@@ -165,9 +165,7 @@ namespace WordPressMigrationTool
             this.winSubscriptionComboBox.Size = new System.Drawing.Size(400, 33);
             this.winSubscriptionComboBox.TabIndex = 3;
             this.winSubscriptionComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.winSubscriptionComboBox.DataSource = this.WinSubscriptions;
-            this.winSubscriptionComboBox.DisplayMember = "Name";
-            this.winSubscriptionComboBox.ValueMember = "Id";
+            this.winSubscriptionComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Subscription");
             this.winSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(this.winSubscriptionComboBox_SelectedIndexChanged);
             // 
             // winResourceGroupComboBox
@@ -288,9 +286,7 @@ namespace WordPressMigrationTool
             this.linuxSubscriptionComboBox.Size = new System.Drawing.Size(400, 33);
             this.linuxSubscriptionComboBox.TabIndex = 11;
             this.linuxSubscriptionComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.linuxSubscriptionComboBox.DataSource = this.LinSubscriptions;
-            this.linuxSubscriptionComboBox.DisplayMember = "Name";
-            this.linuxSubscriptionComboBox.ValueMember = "Id";
+            this.linuxSubscriptionComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Subscription");
             this.linuxSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(this.linuxSubscriptionComboBox_SelectedIndexChanged);
             // 
             // linuxResourceGroupComboBox
