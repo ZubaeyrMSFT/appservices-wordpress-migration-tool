@@ -114,8 +114,8 @@ namespace WordPressMigrationTool
             // Verify if the destination site uses an official WordPress on Linux image.
             if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION || !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
             {
-                string message = String.Format("The destination site ({0}) doesn't use an official WordPress on Linux image. This may cause the migration to fail. " +
-                    "Do you want to continue?", this._destinationSiteInfo.webAppName);
+                string message = String.Format("The destination site ({0}) doesn't use an official WordPress on Linux image. This may cause the migration to fail. It is recommended " +
+                    "to coninue only if the image being used is a minor modification of the official Image. Do you want to continue?", this._destinationSiteInfo.webAppName);
                 string caption = "Invalid Image Detected!";
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
@@ -140,7 +140,7 @@ namespace WordPressMigrationTool
                     this._destinationSiteInfo.webAppName);
                 string caption = "Incomplete WordPress installation detected!";
                 var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.OKCancel,
+                                     MessageBoxButtons.YesNo,
                                      MessageBoxIcon.Warning);
                 
                 if (result == DialogResult.Cancel)
@@ -166,11 +166,11 @@ namespace WordPressMigrationTool
             if (isWpVersionDifferent)
             {
                 string message = String.Format("The WordPress version of source site ({0}) is different from that of desitnation site ({1}). " +
-                   "Your plugins/themes maybe incompatible with the new site.", sourceSiteWpVersion, destinationSiteWpVersion);
+                   "Your plugins/themes maybe incompatible with the new site. It is recommended to update WordPress version in {2} site to match that of {3}. Do you want to continue anyway?", sourceSiteWpVersion, destinationSiteWpVersion, sourceSiteWpVersion, destinationSiteWpVersion);
                 string caption = "WordPress Version Conflict Detected!";
 
                 var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.OKCancel,
+                                     MessageBoxButtons.YesNo,
                                      MessageBoxIcon.Warning);
                 if (result == DialogResult.Cancel)
                 {

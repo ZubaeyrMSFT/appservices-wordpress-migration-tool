@@ -536,8 +536,15 @@ namespace WordPressMigrationTool
                     }
                     if (checkDbImportStatusResult.output.Contains(Constants.IMPORT_FAILURE_MESSAGE))
                     {
+                        string errorMsg = "Could not complete post processing on destination site.";
+                        if (checkDbImportStatusResult.output.Contains(Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX))
+                        {
+                            int startInd = checkDbImportStatusResult.output.LastIndexOf(Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX) + Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX.Length;
+                            int endInd = checkDbImportStatusResult.output.IndexOf("\n", startInd);
+                            errorMsg += checkDbImportStatusResult.output.Substring(startInd, endInd-startInd);
+                        }
                         HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Failed, "Could not complete post processing on destination site.");
+                        return new Result(Status.Failed, errorMsg);
                     }
                 }
 
@@ -559,10 +566,11 @@ namespace WordPressMigrationTool
             string removeLineCommand = "sed -i '/{0}/d' " + Constants.LIN_APP_DB_STATUS_FILE_PATH;
             KuduCommandApiResult removeFailureMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_FAILURE_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
             KuduCommandApiResult removeSuccessMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_SUCCESS_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
+            KuduCommandApiResult removeErrorMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
 
-            if (removeFailureMessageResult.status != Status.Completed || removeSuccessMessageResult.status != Status.Completed)
+            if (removeFailureMessageResult.status != Status.Completed || removeSuccessMessageResult.status != Status.Completed || removeErrorMessageResult.status != Status.Completed)
             {
-                return new Result(Status.Failed, "Couldn't initialize import status file on " + destinationSiteInfo.webAppName + " app.");
+                return new Result(Status.Failed, "Couldn't initialize import status file on " + destinationSiteInfo.webAppName + " app. Please retry by restarting the migration tool.");
             }
             return new Result(Status.Completed, "");
         }
