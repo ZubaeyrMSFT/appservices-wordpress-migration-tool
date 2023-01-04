@@ -166,7 +166,7 @@ namespace WordPressMigrationTool
             if (isWpVersionDifferent)
             {
                 string message = String.Format("The WordPress version of source site ({0}) is different from that of desitnation site ({1}). " +
-                   "Your plugins/themes maybe incompatible with the new site. It is recommended to update WordPress version in {2} site to match that of {3}. Do you want to continue anyway?", sourceSiteWpVersion, destinationSiteWpVersion, sourceSiteWpVersion, destinationSiteWpVersion);
+                   "Your plugins/themes maybe incompatible with the new site. It is recommended to update WordPress version in {2} site to match that of {3}. Do you want to continue anyway?", sourceSiteWpVersion, destinationSiteWpVersion, this._sourceSiteInfo.webAppName, this._destinationSiteInfo.webAppName);
                 string caption = "WordPress Version Conflict Detected!";
 
                 var result = MessageBox.Show(message, caption,
