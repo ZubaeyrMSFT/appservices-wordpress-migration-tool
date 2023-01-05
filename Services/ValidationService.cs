@@ -1,8 +1,10 @@
 ﻿using Azure.ResourceManager.AppService;
 using System;
 using System.Diagnostics;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using WordPressMigrationTool.Utilities;
+using WordPressMigrationTool.Views;
 
 namespace WordPressMigrationTool
 {
@@ -14,15 +16,17 @@ namespace WordPressMigrationTool
         private SiteInfo _destinationSiteInfo;
         private WebSiteResource _sourceSiteResource;
         private WebSiteResource _destinationSiteResource;
+        private MigrationUX _migrationUxForm;
 
         public ValidationService() { }
 
-        public ValidationService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, WebSiteResource sourceSiteResource, WebSiteResource destinationSiteResource)
+        public ValidationService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, WebSiteResource sourceSiteResource, WebSiteResource destinationSiteResource, MigrationUX migrationUxForm)
         {
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
             this._sourceSiteResource = sourceSiteResource;
             this._destinationSiteResource = destinationSiteResource;
+            this._migrationUxForm = migrationUxForm;
         }
 
         public Result ValidateMigrationInput(SiteInfo sourceSite, SiteInfo destinationSite)
@@ -210,9 +214,20 @@ namespace WordPressMigrationTool
 
             if (String.IsNullOrEmpty(sourceSitePhpVersion) || String.IsNullOrEmpty(destinationSitePhpVersion) || sourceSitePhpVersion != destinationSitePhpVersion)
             {
-                string message = String.Format("Source site ({0}) and destination site use different PHP versions. " +
-                    "This may lead to incompatibilities with themes/plugins after migration. Do you want continue?", this._destinationSiteInfo.webAppName);
+                bool continueMigration = true;
+                PhpPopupForm phpWarningPopup = new PhpPopupForm(ref continueMigration);
+                phpWarningPopup.StartPosition = FormStartPosition.Manual;
+                phpWarningPopup.Location = new Point(this._migrationUxForm.Location.X + 100, this._migrationUxForm.Location.Y + 110);
+                phpWarningPopup.ShowDialog();
+                phpWarningPopup.Dispose();
+                if (!continueMigration)
+                {
+                    return new Result(Status.Failed, "Stopping current migration.");
+                }/*
+                string message = String.Format("Source site ({0}) and destination site ({1}) use different PHP versions. " +
+                    "This may lead to incompatibilities with themes/plugins after migration. Do you want continue?", this._sourceSiteInfo.webAppName, this._destinationSiteInfo.webAppName);
                 string caption = "Different PHP versions detected!";
+
 
                 var result = MessageBox.Show(message, caption,
                                      MessageBoxButtons.OKCancel,
@@ -220,7 +235,7 @@ namespace WordPressMigrationTool
                 if (result == DialogResult.Cancel)  
                 {
                     return new Result(Status.Failed, "Stopping current migration.");
-                }
+                }*/
             }
 
             return new Result(Status.Completed, "");

@@ -14,7 +14,7 @@ namespace WordPressMigrationTool.Utilities
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.CreateNoWindow = true;
             proc.Start();
-            proc.WaitForExit();
+            proc.WaitForExit(15000);
         }
     }
 }

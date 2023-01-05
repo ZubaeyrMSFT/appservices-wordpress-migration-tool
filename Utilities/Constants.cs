@@ -6,6 +6,7 @@ namespace WordPressMigrationTool.Utilities
     {
         public const string MigrationToolVersion = "WPMigrationTool";
         public const string AZURE_PORTAL_URL = "https://ms.portal.azure.com/#create/WordPress.WordPress";
+        public const string PHP_VERSION_COMPATIBILITY_CHART_URL = "https://go.microsoft.com/fwlink/?linkid=2221113";
 
         public const int KUDU_ZIP_API_MAX_UPLOAD_LIMIT = 25000000;     // 25 Million Bytes
         public const int BLOB_FILE_UPLOAD_LIMIT = 25000000;            // 25 Million Bytes

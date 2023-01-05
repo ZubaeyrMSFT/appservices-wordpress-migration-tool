@@ -13,13 +13,15 @@ namespace WordPressMigrationTool
         private WebSiteResource _sourceSiteResourse;
         private WebSiteResource _destinationSiteResource;
         private RichTextBox? _progressViewRTextBox;
+        private MigrationUX _migrationUxForm;
         private string[] _previousMigrationStatus;
 
-        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus) { 
+        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, MigrationUX migrationUxForm) { 
             this._sourceSiteInfo = sourceSiteInfo;
             this._destinationSiteInfo = destinationSiteInfo;
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
+            this._migrationUxForm = migrationUxForm;
         }
 
         public Result Migrate()
@@ -44,7 +46,7 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
-                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
+                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource, this._migrationUxForm);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
                 ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
 

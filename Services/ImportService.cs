@@ -484,7 +484,7 @@ namespace WordPressMigrationTool
                 }
             }
             catch { }
-            return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
+            return new Result(Status.Failed, "Unable to initiate post processing on destination linux site. Please retry migration...");
         }
 
         // removes app settings from destination app service that trigger migration script

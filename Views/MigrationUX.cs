@@ -46,8 +46,8 @@ namespace WordPressMigrationTool
             this.Show();
 
             // display popup message box
-            new Thread(() => MessageBox.Show("Authenticate with Azure in the popup browser window. Click OK after authenticating to continue migration.", "", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, 
-                                                 MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000)).Start();
+            MessageBox.Show("Azure login is required prior to launching migration tool. Click OK to open Azure authentication page.", "", MessageBoxButtons.OK, MessageBoxIcon.Information,
+                                                 MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
             
             // One-time azure login
             ShellExecute.Login("az login");
@@ -356,7 +356,7 @@ namespace WordPressMigrationTool
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
 
-            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>());
+            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>(), this);
             ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
             this._childThread = new Thread(childref);
             this._childThread.Start();
@@ -413,7 +413,7 @@ namespace WordPressMigrationTool
                 this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
                 progressViewUX.Show();
 
-                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages);
+                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, this);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
                 this._childThread.Start();
