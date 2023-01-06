@@ -5,13 +5,14 @@ namespace WordPressMigrationTool
 {
     public class LinuxAppDataImportService
     {
-
         private string _ftpUserName;
         private string _ftpPassword;
         private string _appServiceName;
         private RichTextBox? _progressViewRTextBox;
+        private string[] _previousMigrationStatus;
+        private string _migrationStatusFilePath;
 
-        public LinuxAppDataImportService(string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox)
+        public LinuxAppDataImportService(string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus)
         {
             if (string.IsNullOrWhiteSpace(appServiceName))
             {
@@ -35,16 +36,15 @@ namespace WordPressMigrationTool
             this._ftpUserName = ftpUserName;
             this._ftpPassword = ftpPassword;
             this._progressViewRTextBox = progressViewRTextBox;
+            this._previousMigrationStatus = previousMigrationStatus;
+            this._migrationStatusFilePath = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
         }
 
         public Result ImportData()
         {
-            string uploadWpContentKuduUrl = HelperUtils.GetKuduApiForZipUpload(this._appServiceName, "site/wwwroot/wp-content");
-            string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
-            string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
-
             Stopwatch timer = Stopwatch.StartNew();
             HelperUtils.WriteOutputWithNewLine("Preparing to upload App data to the destination site...", this._progressViewRTextBox);
+            
             Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_WPCONTENT_DIR, this._ftpUserName, this._ftpPassword, this._appServiceName);
             if (result.status != Status.Completed)
             {
@@ -63,12 +63,6 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            result = this._ProcessSplitZipFiles();
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
             timer.Stop();
             HelperUtils.WriteOutputWithNewLine("Sucessfully uploaded App Service data to Linux App Service... " +
                 "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
@@ -76,8 +70,14 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "Successfully uploaded App Service data to destination site.");
         }
 
+        // Uploads App data split-zip files to destination app
         private Result _UploadSplitZipFiles()
         {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.uploadAppDataSplitZipFilesCompleted))
+            {
+                return new Result(Status.Completed, "");
+            }
+
             string appContentSplitZipDir = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
             string[] splitZipFilesArr = Directory.GetFiles(appContentSplitZipDir);
             if (splitZipFilesArr.Length == 0)
@@ -87,7 +87,6 @@ namespace WordPressMigrationTool
 
             HelperUtils.WriteOutputWithRC("App data upload progress - Finished uploading 0 out of "
                 + splitZipFilesArr.Length + " files.", this._progressViewRTextBox);
-
 
             for (int splitInd = 0; splitInd < splitZipFilesArr.Length; splitInd++)
             {
@@ -103,11 +102,18 @@ namespace WordPressMigrationTool
                     this._progressViewRTextBox);
             }
 
+            File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadAppDataSplitZipFilesCompleted + Environment.NewLine);
             return new Result(Status.Completed, "App data split zip files uploaded successfully...");
         }
 
+        // Uploads given split-zip file to destination app
         private Result _UploadSplitZipFileToAppService(string splitZipFileName)
         {
+            if (this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.uploadAppDataSplitZipFileCompleted, splitZipFileName)))
+            {
+                return new Result(Status.Completed, "");
+            }
+
             string zippedSplitZipFilesDir = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_NESTED_DIR);
             string zippedFileToUpload = zippedSplitZipFilesDir + splitZipFileName.Replace(".", "") + ".zip";
             string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR + splitZipFileName);
@@ -117,50 +123,31 @@ namespace WordPressMigrationTool
             {
                 Directory.Delete(zippedSplitZipFilesDir, true);
             }
-
             Directory.CreateDirectory(zippedSplitZipFilesDir);
+            
             var zipFile = new Ionic.Zip.ZipFile(Encoding.UTF8);
             zipFile.AddFile(splitZipFilePath, "");
             zipFile.Save(zippedFileToUpload);
 
-            return HelperUtils.LinuxAppServiceUploadZip(zippedFileToUpload, 
+            Result result =  HelperUtils.LinuxAppServiceUploadZip(zippedFileToUpload, 
                 uploadWpContentKuduUrl, this._ftpUserName, this._ftpPassword);
+
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.uploadAppDataSplitZipFileCompleted, splitZipFileName) + Environment.NewLine);
+            }
+
+            return result;
         }
 
-        private Result _ProcessSplitZipFiles()
-        {
-            string message = "Unable to porocess the uploaded App data on Linux App Services.";
-            HelperUtils.WriteOutputWithNewLine("Procesing uploaded App data on Linux App Service...", this._progressViewRTextBox);
-
-            string mergeSplitZipCommand = Constants.WPCONTENT_MERGE_SPLLIT_FILES_COMAMND;
-            KuduCommandApiResult mergeSplitZipResult = HelperUtils.ExecuteKuduCommandApi(mergeSplitZipCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-            if (mergeSplitZipResult.status != Status.Completed)
-            {
-                return new Result(Status.Failed, message + " Error while merging splitted zip files.");
-            }
-
-            Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_WPCONTENT_DIR, this._ftpUserName, this._ftpPassword, this._appServiceName);
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
-            string unzipMergedSplitFileCommand = Constants.UNZIP_MERGED_WPCONTENT_COMMAND;
-            KuduCommandApiResult unzipMergedSplitFileResult = HelperUtils.ExecuteKuduCommandApi(unzipMergedSplitFileCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-            if (unzipMergedSplitFileResult.status != Status.Completed)
-            {
-                return new Result(Status.Failed, message + " Error while extracting merged zip file.");
-            }
-
-            HelperUtils.WriteOutputWithNewLine("Sucessfully processed uploaded App " +
-                "data on Linux App Service...", this._progressViewRTextBox);
-
-            return new Result(Status.Completed, "Sucessfully processed uploaded App " +
-                "data on Linux App Service...");
-        }
-
+        // Splits exported App data zip into smaller split-zip files of ~25MB each
         private Result _SplitWpContentZip()
         {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.splitWpContentZipCompleted))
+            {
+                return new Result(Status.Completed, "");
+            }
+
             HelperUtils.WriteOutputWithNewLine("Splitting App data zip file...", this._progressViewRTextBox);
             string appContentFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_APPSERVICE_DATA_EXPORT_PATH);
             string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.WPCONTENT_SPLIT_ZIP_FILES_DIR);
@@ -179,6 +166,8 @@ namespace WordPressMigrationTool
                     zipFile.MaxOutputSegmentSize = Constants.KUDU_ZIP_API_MAX_UPLOAD_LIMIT;
                     zipFile.Save(splitZipFilePath);
                 }
+
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.splitWpContentZipCompleted + Environment.NewLine);
                 return new Result(Status.Completed, "App data zip file splitted successful...");
             }
             catch (Exception ex) 

@@ -2,6 +2,18 @@
 
 namespace WordPressMigrationTool
 {
+    public class Subscription
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+
+        public Subscription(string name, string Id)
+        {
+            this.Name = name;
+            this.Id = Id.ToLower();
+        }
+    }
+
     public class SiteInfo
     {
         public string subscriptionId { get; set; }
@@ -13,6 +25,7 @@ namespace WordPressMigrationTool
         public string databaseUsername { get; set; }
         public string databasePassword { get; set; }
         public string databaseName { get; set; }
+        public string stackVersion { get; set; }
 
         public SiteInfo(string subscriptionId, string resourceGroupName, string webAppName)
         {

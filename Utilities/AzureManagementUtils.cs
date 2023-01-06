@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -12,7 +13,6 @@ namespace WordPressMigrationTool.Utilities
 {
     public static class AzureManagementUtils
     {
-
         public static WebSiteResource GetWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName)
         {
             ArmClient client = new ArmClient(new DefaultAzureCredential(true));
@@ -44,6 +44,51 @@ namespace WordPressMigrationTool.Utilities
 
             return webSite;
         }
+
+        public static SubscriptionCollection GetSubscriptions()
+        {
+            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            if (client == null)
+            {
+                throw new InvalidCredentialException("Unable to authenticated to Azure Services");
+            }
+
+            return client.GetSubscriptions();
+        }
+
+        public static List<String> GetResourceGroupsInSubscription(string subscriptionId, SubscriptionCollection subscriptions)
+        {
+            SubscriptionResource subscription = subscriptions.Get(subscriptionId);
+            ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
+            List<string> resourceGroupNames = new List<string>();
+            
+            foreach(ResourceGroupResource resourceGroup in resourceGroups)
+            {
+                if (resourceGroup == null || !resourceGroup.HasData)
+                    continue;
+                resourceGroupNames.Add(resourceGroup.Data.Name);
+            }
+
+            return resourceGroupNames;
+        }
+
+        public static List<string> GetAppServicesInResourceGroup(string subscriptionId, string resourceGroupName, SubscriptionCollection subscriptions)
+        {
+            SubscriptionResource subscription = subscriptions.Get(subscriptionId);
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup(resourceGroupName);
+            WebSiteCollection webSites = resourceGroup.GetWebSites();
+            List<string> webSiteNames = new List<string>();
+
+            foreach (WebSiteResource webSite in webSites)
+            {
+                if (webSite == null || !webSite.HasData)
+                    continue;
+                webSiteNames.Add(webSite.Data.Name);
+            }
+
+            return webSiteNames;
+        }
+
 
         public static string GetDatabaseConnectionString(WebSiteResource webSiteResource)
         {
@@ -85,6 +130,11 @@ namespace WordPressMigrationTool.Utilities
             }
 
             return new Dictionary<string, string>(appSettings.Value.Properties);
+        }
+
+        public static IDictionary<string, string> GetWebSiteApplicationSettings(WebSiteResource webSiteResource)
+        {
+            return webSiteResource.GetApplicationSettings().Value.Properties;
         }
 
         public static bool UpdateApplicationSettingForAppService(WebSiteResource webSiteResource, string appSettingKey, string appSettingValue)

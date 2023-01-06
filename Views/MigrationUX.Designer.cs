@@ -1,4 +1,8 @@
-﻿namespace WordPressMigrationTool
+﻿using System.Diagnostics;
+using System.Security.Policy;
+using WordPressMigrationTool.Utilities;
+
+namespace WordPressMigrationTool
 {
     partial class MigrationUX
     {
@@ -28,6 +32,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MigrationUX));
             this.mainFlowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.mainPanelTableLayout1 = new System.Windows.Forms.TableLayoutPanel();
             this.windowsDetailsGroupBox = new System.Windows.Forms.GroupBox();
@@ -35,17 +40,19 @@
             this.winSubscriptionIdLabel = new System.Windows.Forms.Label();
             this.winResourceGroupNameLabel = new System.Windows.Forms.Label();
             this.winAppServiceNameLabel = new System.Windows.Forms.Label();
-            this.winSubscriptionTextBox = new System.Windows.Forms.TextBox();
-            this.winResourceGroupTextBox = new System.Windows.Forms.TextBox();
-            this.winAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.winSubscriptionComboBox = new System.Windows.Forms.ComboBox();
+            this.winResourceGroupComboBox = new System.Windows.Forms.ComboBox();
+            this.winAppServiceComboBox = new System.Windows.Forms.ComboBox();
             this.linuxDetailsGroupBox = new System.Windows.Forms.GroupBox();
+            this.createNewLabel = new System.Windows.Forms.Label();
+            this.createNewLinkLabel = new System.Windows.Forms.LinkLabel();
             this.linuxDetailsTableLayout = new System.Windows.Forms.TableLayoutPanel();
             this.linuxSubscriptionIdLabel = new System.Windows.Forms.Label();
             this.linuxResourceGroupLabel = new System.Windows.Forms.Label();
             this.linuxAppServiceNameLabel = new System.Windows.Forms.Label();
-            this.linuxSubscriptionIdTextBox = new System.Windows.Forms.TextBox();
-            this.linuxResourceGroupTextBox = new System.Windows.Forms.TextBox();
-            this.linuxAppServiceTextBox = new System.Windows.Forms.TextBox();
+            this.linuxSubscriptionComboBox = new System.Windows.Forms.ComboBox();
+            this.linuxResourceGroupComboBox = new System.Windows.Forms.ComboBox();
+            this.linuxAppServiceComboBox = new System.Windows.Forms.ComboBox();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.bottomTableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.bottomTableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -65,9 +72,10 @@
             // mainFlowLayoutPanel1
             // 
             this.mainFlowLayoutPanel1.Controls.Add(this.mainPanelTableLayout1);
-            this.mainFlowLayoutPanel1.Location = new System.Drawing.Point(1, 2);
+            this.mainFlowLayoutPanel1.Location = new System.Drawing.Point(1, 3);
+            this.mainFlowLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.mainFlowLayoutPanel1.Name = "mainFlowLayoutPanel1";
-            this.mainFlowLayoutPanel1.Size = new System.Drawing.Size(454, 345);
+            this.mainFlowLayoutPanel1.Size = new System.Drawing.Size(649, 590);
             this.mainFlowLayoutPanel1.TabIndex = 0;
             // 
             // mainPanelTableLayout1
@@ -76,20 +84,23 @@
             this.mainPanelTableLayout1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.mainPanelTableLayout1.Controls.Add(this.windowsDetailsGroupBox, 0, 0);
             this.mainPanelTableLayout1.Controls.Add(this.linuxDetailsGroupBox, 0, 1);
-            this.mainPanelTableLayout1.Location = new System.Drawing.Point(3, 3);
+            this.mainPanelTableLayout1.Location = new System.Drawing.Point(4, 5);
+            this.mainPanelTableLayout1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.mainPanelTableLayout1.Name = "mainPanelTableLayout1";
             this.mainPanelTableLayout1.RowCount = 2;
             this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.mainPanelTableLayout1.Size = new System.Drawing.Size(451, 342);
+            this.mainPanelTableLayout1.Size = new System.Drawing.Size(644, 590);
             this.mainPanelTableLayout1.TabIndex = 0;
             // 
             // windowsDetailsGroupBox
             // 
             this.windowsDetailsGroupBox.Controls.Add(this.windowsDetailsTableLayout);
-            this.windowsDetailsGroupBox.Location = new System.Drawing.Point(3, 3);
+            this.windowsDetailsGroupBox.Location = new System.Drawing.Point(4, 5);
+            this.windowsDetailsGroupBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.windowsDetailsGroupBox.Name = "windowsDetailsGroupBox";
-            this.windowsDetailsGroupBox.Size = new System.Drawing.Size(441, 165);
+            this.windowsDetailsGroupBox.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.windowsDetailsGroupBox.Size = new System.Drawing.Size(630, 265);
             this.windowsDetailsGroupBox.TabIndex = 0;
             this.windowsDetailsGroupBox.TabStop = false;
             this.windowsDetailsGroupBox.Text = "Source Site (Windows App Service)";
@@ -102,75 +113,118 @@
             this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionIdLabel, 0, 0);
             this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupNameLabel, 0, 1);
             this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceNameLabel, 0, 2);
-            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionTextBox, 1, 0);
-            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupTextBox, 1, 1);
-            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceTextBox, 1, 2);
-            this.windowsDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
+            this.windowsDetailsTableLayout.Controls.Add(this.winSubscriptionComboBox, 1, 0);
+            this.windowsDetailsTableLayout.Controls.Add(this.winResourceGroupComboBox, 1, 1);
+            this.windowsDetailsTableLayout.Controls.Add(this.winAppServiceComboBox, 1, 2);
+            this.windowsDetailsTableLayout.Location = new System.Drawing.Point(9, 60);
+            this.windowsDetailsTableLayout.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.windowsDetailsTableLayout.Name = "windowsDetailsTableLayout";
             this.windowsDetailsTableLayout.RowCount = 3;
             this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.windowsDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.windowsDetailsTableLayout.Size = new System.Drawing.Size(426, 113);
+            this.windowsDetailsTableLayout.Size = new System.Drawing.Size(609, 188);
             this.windowsDetailsTableLayout.TabIndex = 0;
             // 
             // winSubscriptionIdLabel
             // 
             this.winSubscriptionIdLabel.AutoSize = true;
-            this.winSubscriptionIdLabel.Location = new System.Drawing.Point(3, 0);
+            this.winSubscriptionIdLabel.Location = new System.Drawing.Point(4, 0);
+            this.winSubscriptionIdLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.winSubscriptionIdLabel.Name = "winSubscriptionIdLabel";
-            this.winSubscriptionIdLabel.Size = new System.Drawing.Size(86, 15);
+            this.winSubscriptionIdLabel.Size = new System.Drawing.Size(132, 25);
             this.winSubscriptionIdLabel.TabIndex = 0;
-            this.winSubscriptionIdLabel.Text = "Subscription Id";
+            this.winSubscriptionIdLabel.Text = "Subscription";
             // 
             // winResourceGroupNameLabel
             // 
             this.winResourceGroupNameLabel.AutoSize = true;
-            this.winResourceGroupNameLabel.Location = new System.Drawing.Point(3, 37);
+            this.winResourceGroupNameLabel.Location = new System.Drawing.Point(4, 62);
+            this.winResourceGroupNameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.winResourceGroupNameLabel.Name = "winResourceGroupNameLabel";
-            this.winResourceGroupNameLabel.Size = new System.Drawing.Size(91, 15);
+            this.winResourceGroupNameLabel.Size = new System.Drawing.Size(138, 25);
             this.winResourceGroupNameLabel.TabIndex = 1;
             this.winResourceGroupNameLabel.Text = "Resource Group";
             // 
             // winAppServiceNameLabel
             // 
             this.winAppServiceNameLabel.AutoSize = true;
-            this.winAppServiceNameLabel.Location = new System.Drawing.Point(3, 74);
+            this.winAppServiceNameLabel.Location = new System.Drawing.Point(4, 124);
+            this.winAppServiceNameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.winAppServiceNameLabel.Name = "winAppServiceNameLabel";
-            this.winAppServiceNameLabel.Size = new System.Drawing.Size(104, 15);
+            this.winAppServiceNameLabel.Size = new System.Drawing.Size(158, 25);
             this.winAppServiceNameLabel.TabIndex = 2;
             this.winAppServiceNameLabel.Text = "App Service Name";
             // 
-            // winSubscriptionTextBox
+            // winSubscriptionComboBox
             // 
-            this.winSubscriptionTextBox.Location = new System.Drawing.Point(130, 3);
-            this.winSubscriptionTextBox.Name = "winSubscriptionTextBox";
-            this.winSubscriptionTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winSubscriptionTextBox.TabIndex = 3;
+            this.winSubscriptionComboBox.DisplayMember = "Name";
+            this.winSubscriptionComboBox.Location = new System.Drawing.Point(186, 5);
+            this.winSubscriptionComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.winSubscriptionComboBox.Name = "winSubscriptionComboBox";
+            this.winSubscriptionComboBox.Size = new System.Drawing.Size(400, 33);
+            this.winSubscriptionComboBox.TabIndex = 3;
+            this.winSubscriptionComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.winSubscriptionComboBox.DataSource = this.WinSubscriptions;
+            this.winSubscriptionComboBox.DisplayMember = "Name";
+            this.winSubscriptionComboBox.ValueMember = "Id";
+            this.winSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(this.winSubscriptionComboBox_SelectedIndexChanged);
             // 
-            // winResourceGroupTextBox
+            // winResourceGroupComboBox
             // 
-            this.winResourceGroupTextBox.Location = new System.Drawing.Point(130, 40);
-            this.winResourceGroupTextBox.Name = "winResourceGroupTextBox";
-            this.winResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winResourceGroupTextBox.TabIndex = 4;
+            this.winResourceGroupComboBox.Location = new System.Drawing.Point(186, 67);
+            this.winResourceGroupComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.winResourceGroupComboBox.Name = "winResourceGroupComboBox";
+            this.winResourceGroupComboBox.Size = new System.Drawing.Size(400, 33);
+            this.winResourceGroupComboBox.TabIndex = 4;
+            this.winResourceGroupComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.winResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+            this.winResourceGroupComboBox.SelectionChangeCommitted += new System.EventHandler(this.winResourceGroupComboBox_SelectedIndexChanged);
             // 
-            // winAppServiceTextBox
+            // winAppServiceComboBox
             // 
-            this.winAppServiceTextBox.Location = new System.Drawing.Point(130, 77);
-            this.winAppServiceTextBox.Name = "winAppServiceTextBox";
-            this.winAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
-            this.winAppServiceTextBox.TabIndex = 5;
+            this.winAppServiceComboBox.Location = new System.Drawing.Point(186, 129);
+            this.winAppServiceComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.winAppServiceComboBox.Name = "winAppServiceComboBox";
+            this.winAppServiceComboBox.Size = new System.Drawing.Size(400, 33);
+            this.winAppServiceComboBox.TabIndex = 5;
+            this.winAppServiceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.winAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Windows app");
             // 
             // linuxDetailsGroupBox
             // 
+            this.linuxDetailsGroupBox.Controls.Add(this.createNewLabel);
+            this.linuxDetailsGroupBox.Controls.Add(this.createNewLinkLabel);
             this.linuxDetailsGroupBox.Controls.Add(this.linuxDetailsTableLayout);
-            this.linuxDetailsGroupBox.Location = new System.Drawing.Point(3, 174);
+            this.linuxDetailsGroupBox.Location = new System.Drawing.Point(4, 300);
+            this.linuxDetailsGroupBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.linuxDetailsGroupBox.Name = "linuxDetailsGroupBox";
-            this.linuxDetailsGroupBox.Size = new System.Drawing.Size(441, 165);
+            this.linuxDetailsGroupBox.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.linuxDetailsGroupBox.Size = new System.Drawing.Size(630, 285);
             this.linuxDetailsGroupBox.TabIndex = 1;
             this.linuxDetailsGroupBox.TabStop = false;
             this.linuxDetailsGroupBox.Text = "Destination Site (Linux App Service)";
+            // 
+            // createNewLabel
+            // 
+            this.createNewLabel.AutoSize = true;
+            this.createNewLabel.Location = new System.Drawing.Point(16, 36);
+            this.createNewLabel.Name = "createNewLabel";
+            this.createNewLabel.Size = new System.Drawing.Size(472, 25);
+            this.createNewLabel.TabIndex = 2;
+            this.createNewLabel.Text = "Do not have an existing WordPress site? Create a new site ";
+            // 
+            // createNewLinkLabel
+            // 
+            this.createNewLinkLabel.AutoSize = true;
+            this.createNewLinkLabel.Location = new System.Drawing.Point(484, 36);
+            this.createNewLinkLabel.Name = "createNewLinkLabel";
+            this.createNewLinkLabel.Size = new System.Drawing.Size(46, 25);
+            this.createNewLinkLabel.TabIndex = 1;
+            this.createNewLinkLabel.TabStop = true;
+            this.createNewLinkLabel.Text = "here";
+            this.createNewLinkLabel.Links.Add(0, 4, Constants.AZURE_PORTAL_URL);
+            this.createNewLinkLabel.LinkClicked += (s,e) => System.Diagnostics.Process.Start(new ProcessStartInfo("cmd", $"/c start {Constants.AZURE_PORTAL_URL}"){ CreateNoWindow = true }); 
             // 
             // linuxDetailsTableLayout
             // 
@@ -180,74 +234,93 @@
             this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdLabel, 0, 0);
             this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupLabel, 0, 1);
             this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceNameLabel, 0, 2);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionIdTextBox, 1, 0);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupTextBox, 1, 1);
-            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceTextBox, 1, 2);
-            this.linuxDetailsTableLayout.Location = new System.Drawing.Point(6, 36);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxSubscriptionComboBox, 1, 0);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxResourceGroupComboBox, 1, 1);
+            this.linuxDetailsTableLayout.Controls.Add(this.linuxAppServiceComboBox, 1, 2);
+            this.linuxDetailsTableLayout.Location = new System.Drawing.Point(13, 76);
+            this.linuxDetailsTableLayout.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.linuxDetailsTableLayout.Name = "linuxDetailsTableLayout";
             this.linuxDetailsTableLayout.RowCount = 3;
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.linuxDetailsTableLayout.Size = new System.Drawing.Size(426, 125);
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 33F));
+            this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 33F));
+            this.linuxDetailsTableLayout.Size = new System.Drawing.Size(609, 209);
             this.linuxDetailsTableLayout.TabIndex = 0;
             // 
             // linuxSubscriptionIdLabel
             // 
             this.linuxSubscriptionIdLabel.AutoSize = true;
-            this.linuxSubscriptionIdLabel.Location = new System.Drawing.Point(3, 0);
+            this.linuxSubscriptionIdLabel.Location = new System.Drawing.Point(4, 0);
+            this.linuxSubscriptionIdLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linuxSubscriptionIdLabel.Name = "linuxSubscriptionIdLabel";
-            this.linuxSubscriptionIdLabel.Size = new System.Drawing.Size(86, 15);
+            this.linuxSubscriptionIdLabel.Size = new System.Drawing.Size(132, 25);
             this.linuxSubscriptionIdLabel.TabIndex = 0;
-            this.linuxSubscriptionIdLabel.Text = "Subscription Id";
+            this.linuxSubscriptionIdLabel.Text = "Subscription";
             // 
             // linuxResourceGroupLabel
             // 
             this.linuxResourceGroupLabel.AutoSize = true;
-            this.linuxResourceGroupLabel.Location = new System.Drawing.Point(3, 41);
+            this.linuxResourceGroupLabel.Location = new System.Drawing.Point(4, 69);
+            this.linuxResourceGroupLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linuxResourceGroupLabel.Name = "linuxResourceGroupLabel";
-            this.linuxResourceGroupLabel.Size = new System.Drawing.Size(91, 15);
+            this.linuxResourceGroupLabel.Size = new System.Drawing.Size(138, 25);
             this.linuxResourceGroupLabel.TabIndex = 1;
             this.linuxResourceGroupLabel.Text = "Resource Group";
             // 
             // linuxAppServiceNameLabel
             // 
             this.linuxAppServiceNameLabel.AutoSize = true;
-            this.linuxAppServiceNameLabel.Location = new System.Drawing.Point(3, 82);
+            this.linuxAppServiceNameLabel.Location = new System.Drawing.Point(4, 138);
+            this.linuxAppServiceNameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linuxAppServiceNameLabel.Name = "linuxAppServiceNameLabel";
-            this.linuxAppServiceNameLabel.Size = new System.Drawing.Size(104, 15);
+            this.linuxAppServiceNameLabel.Size = new System.Drawing.Size(158, 25);
             this.linuxAppServiceNameLabel.TabIndex = 2;
             this.linuxAppServiceNameLabel.Text = "App Service Name";
             // 
-            // linuxSubscriptionIdTextBox
+            // linuxSubscriptionComboBox
             // 
-            this.linuxSubscriptionIdTextBox.Location = new System.Drawing.Point(130, 3);
-            this.linuxSubscriptionIdTextBox.Name = "linuxSubscriptionIdTextBox";
-            this.linuxSubscriptionIdTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxSubscriptionIdTextBox.TabIndex = 3;
+            this.linuxSubscriptionComboBox.DisplayMember = "Name";
+            this.linuxSubscriptionComboBox.Location = new System.Drawing.Point(186, 5);
+            this.linuxSubscriptionComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.linuxSubscriptionComboBox.Name = "linuxSubscriptionComboBox";
+            this.linuxSubscriptionComboBox.Size = new System.Drawing.Size(400, 33);
+            this.linuxSubscriptionComboBox.TabIndex = 11;
+            this.linuxSubscriptionComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.linuxSubscriptionComboBox.DataSource = this.LinSubscriptions;
+            this.linuxSubscriptionComboBox.DisplayMember = "Name";
+            this.linuxSubscriptionComboBox.ValueMember = "Id";
+            this.linuxSubscriptionComboBox.SelectionChangeCommitted += new System.EventHandler(this.linuxSubscriptionComboBox_SelectedIndexChanged);
             // 
-            // linuxResourceGroupTextBox
+            // linuxResourceGroupComboBox
             // 
-            this.linuxResourceGroupTextBox.Location = new System.Drawing.Point(130, 44);
-            this.linuxResourceGroupTextBox.Name = "linuxResourceGroupTextBox";
-            this.linuxResourceGroupTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxResourceGroupTextBox.TabIndex = 4;
+            this.linuxResourceGroupComboBox.Location = new System.Drawing.Point(186, 74);
+            this.linuxResourceGroupComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.linuxResourceGroupComboBox.Name = "linuxResourceGroupComboBox";
+            this.linuxResourceGroupComboBox.Size = new System.Drawing.Size(400, 33);
+            this.linuxResourceGroupComboBox.TabIndex = 12;
+            this.linuxResourceGroupComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.linuxResourceGroupComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a Resource Group");
+            this.linuxResourceGroupComboBox.SelectionChangeCommitted += new System.EventHandler(this.linuxResourceGroupComboBox_SelectedIndexChanged);
             // 
-            // linuxAppServiceTextBox
+            // linuxAppServiceComboBox
             // 
-            this.linuxAppServiceTextBox.Location = new System.Drawing.Point(130, 85);
-            this.linuxAppServiceTextBox.Name = "linuxAppServiceTextBox";
-            this.linuxAppServiceTextBox.Size = new System.Drawing.Size(281, 23);
-            this.linuxAppServiceTextBox.TabIndex = 5;
+            this.linuxAppServiceComboBox.Location = new System.Drawing.Point(186, 143);
+            this.linuxAppServiceComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.linuxAppServiceComboBox.Name = "linuxAppServiceComboBox";
+            this.linuxAppServiceComboBox.Size = new System.Drawing.Size(400, 33);
+            this.linuxAppServiceComboBox.TabIndex = 14;
+            this.linuxAppServiceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
             // 
             // flowLayoutPanel2
             // 
             this.flowLayoutPanel2.Controls.Add(this.bottomTableLayoutPanel1);
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(1, 346);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(5, 598);
+            this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(454, 50);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(649, 83);
             this.flowLayoutPanel2.TabIndex = 1;
             // 
             // bottomTableLayoutPanel1
@@ -256,11 +329,12 @@
             this.bottomTableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.bottomTableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.bottomTableLayoutPanel1.Controls.Add(this.bottomTableLayoutPanel2, 1, 0);
-            this.bottomTableLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.bottomTableLayoutPanel1.Location = new System.Drawing.Point(4, 5);
+            this.bottomTableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.bottomTableLayoutPanel1.Name = "bottomTableLayoutPanel1";
             this.bottomTableLayoutPanel1.RowCount = 1;
             this.bottomTableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.bottomTableLayoutPanel1.Size = new System.Drawing.Size(451, 46);
+            this.bottomTableLayoutPanel1.Size = new System.Drawing.Size(644, 77);
             this.bottomTableLayoutPanel1.TabIndex = 0;
             // 
             // bottomTableLayoutPanel2
@@ -271,18 +345,20 @@
             this.bottomTableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.bottomTableLayoutPanel2.Controls.Add(this.migrateButton, 1, 0);
             this.bottomTableLayoutPanel2.Controls.Add(this.cancelButton, 2, 0);
-            this.bottomTableLayoutPanel2.Location = new System.Drawing.Point(228, 3);
+            this.bottomTableLayoutPanel2.Location = new System.Drawing.Point(326, 5);
+            this.bottomTableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.bottomTableLayoutPanel2.Name = "bottomTableLayoutPanel2";
             this.bottomTableLayoutPanel2.RowCount = 1;
             this.bottomTableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.bottomTableLayoutPanel2.Size = new System.Drawing.Size(220, 40);
+            this.bottomTableLayoutPanel2.Size = new System.Drawing.Size(314, 67);
             this.bottomTableLayoutPanel2.TabIndex = 0;
             // 
             // migrateButton
             // 
-            this.migrateButton.Location = new System.Drawing.Point(76, 3);
+            this.migrateButton.Location = new System.Drawing.Point(108, 5);
+            this.migrateButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.migrateButton.Name = "migrateButton";
-            this.migrateButton.Size = new System.Drawing.Size(67, 34);
+            this.migrateButton.Size = new System.Drawing.Size(96, 57);
             this.migrateButton.TabIndex = 0;
             this.migrateButton.Text = "Migrate";
             this.migrateButton.UseVisualStyleBackColor = true;
@@ -290,9 +366,10 @@
             // 
             // cancelButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(149, 3);
+            this.cancelButton.Location = new System.Drawing.Point(212, 5);
+            this.cancelButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(68, 34);
+            this.cancelButton.Size = new System.Drawing.Size(97, 57);
             this.cancelButton.TabIndex = 1;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
@@ -300,12 +377,13 @@
             // 
             // MigrationUX
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(459, 396);
+            this.ClientSize = new System.Drawing.Size(662, 685);
             this.Controls.Add(this.flowLayoutPanel2);
             this.Controls.Add(this.mainFlowLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MaximizeBox = false;
             this.Name = "MigrationUX";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -316,6 +394,7 @@
             this.windowsDetailsTableLayout.ResumeLayout(false);
             this.windowsDetailsTableLayout.PerformLayout();
             this.linuxDetailsGroupBox.ResumeLayout(false);
+            this.linuxDetailsGroupBox.PerformLayout();
             this.linuxDetailsTableLayout.ResumeLayout(false);
             this.linuxDetailsTableLayout.PerformLayout();
             this.flowLayoutPanel2.ResumeLayout(false);
@@ -340,15 +419,17 @@
         private Label winSubscriptionIdLabel;
         private Label winResourceGroupNameLabel;
         private Label winAppServiceNameLabel;
-        private TextBox winSubscriptionTextBox;
-        private TextBox winResourceGroupTextBox;
-        private TextBox winAppServiceTextBox;
+        private ComboBox winSubscriptionComboBox;
+        private ComboBox winResourceGroupComboBox;
+        private ComboBox winAppServiceComboBox;
         private TableLayoutPanel linuxDetailsTableLayout;
         private Label linuxSubscriptionIdLabel;
         private Label linuxResourceGroupLabel;
         private Label linuxAppServiceNameLabel;
-        private TextBox linuxSubscriptionIdTextBox;
-        private TextBox linuxResourceGroupTextBox;
-        private TextBox linuxAppServiceTextBox;
+        private ComboBox linuxSubscriptionComboBox;
+        private ComboBox linuxResourceGroupComboBox;
+        private ComboBox linuxAppServiceComboBox;
+        private Label createNewLabel;
+        private LinkLabel createNewLinkLabel;
     }
 }

@@ -27,10 +27,12 @@ namespace WordPressMigrationTool
         private string _password;
         private string _databaseName;
         private RichTextBox? _progressViewRTextBox;
+        private string[] _previousMigrationStatus;
+        private string _migrationStatusFilePath;
 
 
         public LinuxMySQLDataImportService(WebSiteResource destinationSiteResource, string serverHostName, string username,
-            string password, string databaseName, string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox)
+            string password, string databaseName, string appServiceName, string ftpUserName, string ftpPassword, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, string migrationStatusFilePath)
         {
             if (destinationSiteResource == null)
             {
@@ -88,6 +90,8 @@ namespace WordPressMigrationTool
             this._ftpUserName = ftpUserName;
             this._ftpPassword = ftpPassword;
             this._progressViewRTextBox = progressViewRTextBox;
+            this._previousMigrationStatus = previousMigrationStatus;
+            this._migrationStatusFilePath = migrationStatusFilePath;
         }
 
         public Result ImportData()
@@ -101,26 +105,13 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            result = this._UploadMySqlDump();
+            result = this._SplitMysqlZip();
             if (result.status != Status.Completed)
             {
                 return result;
             }
 
-            result = this._StartDatabaseImportInAppContainer();
-            if (result.status != Status.Completed)
-            {
-                return result;
-            }
-
-            result = this._WaitForDBImportInAppService();
-            if (result.status != Status.Completed)
-            {
-                this.StopDatabaseImportInAppContainer();
-                return result;
-            }
-
-            result = this.StopDatabaseImportInAppContainer();
+            result = this._UploadMysqlSplitZipFiles();
             if (result.status != Status.Completed)
             {
                 return result;
@@ -133,28 +124,114 @@ namespace WordPressMigrationTool
             return new Result(Status.Completed, "Successfully migrated MySQL data to destination site.");
         }
 
-        private Result _UploadMySqlDump()
+        // Splits MySQL dump zip file into smaller split-zip files of ~25MB each
+        private Result _SplitMysqlZip()
         {
-            HelperUtils.WriteOutputWithNewLine("Uploading MySQL dump to destination app.", this._progressViewRTextBox);
-            string uploadMySqlDumpKuduUrl = HelperUtils.GetKuduApiForZipUpload(this._appServiceName, Constants.LIN_MYSQL_DUMP_UPLOAD_PATH_FOR_KUDU_API);
-            string mySqlZipFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
-
-            if (!File.Exists(mySqlZipFilePath))
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.splitMysqlZipCompleted))
             {
-                return new Result(Status.Failed, "MySQL dump not found at " + mySqlZipFilePath);
+                return new Result(Status.Completed, "");
             }
 
-            Result result = HelperUtils.LinuxAppServiceUploadZip(mySqlZipFilePath, uploadMySqlDumpKuduUrl, this._ftpUserName, this._ftpPassword);
-            if (result.status != Status.Completed)
+            HelperUtils.WriteOutputWithNewLine("Splitting MySQL zip file...", this._progressViewRTextBox);
+            string mysqlFilePath = Environment.ExpandEnvironmentVariables(Constants.WIN_MYSQL_DATA_EXPORT_COMPRESSED_SQLFILE_PATH);
+            string splitZipFilesDirectory = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR);
+            string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILE_PATH);
+
+            if (Directory.Exists(splitZipFilesDirectory))
             {
-                return result;
+                Directory.Delete(splitZipFilesDirectory, true);
             }
 
-            HelperUtils.WriteOutputWithNewLine("Sucessfully uploaded MySQL dump.", this._progressViewRTextBox);
-            return new Result(Status.Completed, "Successfully uploaded MySQL dump.");
+            try
+            {
+                Directory.CreateDirectory(splitZipFilesDirectory);
+                using (var zipFile = Ionic.Zip.ZipFile.Read(mysqlFilePath))
+                {
+                    zipFile.MaxOutputSegmentSize = Constants.KUDU_ZIP_API_MAX_UPLOAD_LIMIT;
+                    zipFile.Save(splitZipFilePath);
+                }
+
+                File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.splitMysqlZipCompleted + Environment.NewLine);
+                return new Result(Status.Completed, "MySQL zip file splitted successful...");
+            }
+            catch (Exception ex)
+            {
+                return new Result(Status.Failed, "Couldn't split MySQL zip file. Error=" + ex.Message);
+            }
         }
 
+        // Uploads MySQL ddump split-zip files to destination app
+        private Result _UploadMysqlSplitZipFiles()
+        {
+            if (this._previousMigrationStatus.Contains(Constants.StatusMessages.uploadMysqlSplitZipFilesCompleted))
+            {
+                return new Result(Status.Completed, "");
+            }
 
+            string mysqlSplitZipDir = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR);
+            string[] splitZipFilesArr = Directory.GetFiles(mysqlSplitZipDir);
+            if (splitZipFilesArr.Length == 0)
+            {
+                return new Result(Status.Failed, "Could not find MySQL split zip data at " + mysqlSplitZipDir);
+            }
+
+            HelperUtils.WriteOutputWithRC("MySQL upload progress - Finished uploading 0 out of "
+                + splitZipFilesArr.Length + " files.", this._progressViewRTextBox);
+
+            // Upload split-zip files
+            for (int splitInd = 0; splitInd < splitZipFilesArr.Length; splitInd++)
+            {
+                string splitZipFileName = Path.GetFileName(splitZipFilesArr[splitInd]);
+                Result result = this._UploadSplitZipFileToDestinationApp(splitZipFileName);
+                if (result.status == Status.Failed || result.status == Status.Cancelled)
+                {
+                    return result;
+                }
+
+                HelperUtils.WriteOutputWithRC("MySQL upload progress - Finished uploading " + (splitInd + 1) + " out of "
+                    + splitZipFilesArr.Length + " files." + ((splitInd + 1 == splitZipFilesArr.Length) ? "\n" : ""),
+                    this._progressViewRTextBox);
+            }
+
+            File.AppendAllText(this._migrationStatusFilePath, Constants.StatusMessages.uploadMysqlSplitZipFilesCompleted + Environment.NewLine);
+            return new Result(Status.Completed, "MySQL split zip files uploaded successfully...");
+        }
+
+        // Uploads given split-zip file to destination app through kudu zip api
+        private Result _UploadSplitZipFileToDestinationApp(string splitZipFileName)
+        {
+            if (this._previousMigrationStatus.Contains(String.Format(Constants.StatusMessages.uploadMysqlSplitZipFileCompleted, splitZipFileName)))
+            {
+                return new Result(Status.Completed, "");
+            }
+
+            string zippedSplitZipFilesDir = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_NESTED_DIR);
+            string zippedFileToUpload = zippedSplitZipFilesDir + splitZipFileName.Replace(".", "") + ".zip";
+            string splitZipFilePath = Environment.ExpandEnvironmentVariables(Constants.MYSQL_SPLIT_ZIP_FILES_DIR + splitZipFileName);
+            string uploadMysqlKuduUrl = HelperUtils.GetKuduApiForZipUpload(this._appServiceName, Constants.MYSQL_TEMP_DIR_KUDU_API);
+
+            if (Directory.Exists(zippedSplitZipFilesDir))
+            {
+                Directory.Delete(zippedSplitZipFilesDir, true);
+            }
+            Directory.CreateDirectory(zippedSplitZipFilesDir);
+
+            var zipFile = new Ionic.Zip.ZipFile(Encoding.UTF8);
+            zipFile.AddFile(splitZipFilePath, "");
+            zipFile.Save(zippedFileToUpload);
+
+            Result result = HelperUtils.LinuxAppServiceUploadZip(zippedFileToUpload,
+                uploadMysqlKuduUrl, this._ftpUserName, this._ftpPassword);
+
+            if (result.status == Status.Completed)
+            {
+                File.AppendAllText(this._migrationStatusFilePath, String.Format(Constants.StatusMessages.uploadMysqlSplitZipFileCompleted, splitZipFileName) + Environment.NewLine);
+            }
+
+            return result;
+        }
+
+        // creates /home/dev/migrate/ dir on destination app service using kudu command api
         private Result _SetupMySqlDumpPlaceholderDirectory()
         {
             string errMsg = "Could not setup placeholder directory in destination app service for MySQL dump...";
@@ -172,80 +249,6 @@ namespace WordPressMigrationTool
 
             return new Result(Status.Completed, "Successfully created a " +
                 "temp MySQL data dump directory on Linux App Service.");
-        }
-
-        public Result _StartDatabaseImportInAppContainer()
-        {
-            try
-            {
-                HelperUtils.WriteOutputWithNewLine("Initiating MySQL import on destination site.", this._progressViewRTextBox);
-                Dictionary<string, string> appSettings = new Dictionary<string, string>();
-                appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
-                appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, this._databaseName);
-                appSettings.Add(Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING, String.Format("{0}{1}", Constants.MYSQL_TEMP_DIR, Constants.WIN_MYSQL_SQL_FILENAME));
-                if (AzureManagementUtils.UpdateApplicationSettingForAppService(this._destinationSiteResource, appSettings))
-                {
-                    return new Result(Status.Completed, "");
-                }
-            }
-            catch { }
-            return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
-        }
-
-        public Result StopDatabaseImportInAppContainer()
-        {
-            int retiresCount = 1;
-            while (retiresCount <= Constants.MAX_RETRIES_COMMON)
-            {
-                try
-                {
-                    string[] appSettings = { Constants.START_MIGRATION_APP_SETTING, Constants.NEW_DATABASE_NAME_APP_SETTING, Constants.MYSQL_DUMP_FILE_PATH_APP_SETTING };
-                    if (AzureManagementUtils.RemoveApplicationSettingForAppService(this._destinationSiteResource, appSettings))
-                    {
-                        return new Result(Status.Completed, "");
-                    }
-                }
-                catch { }
-                retiresCount++;
-            }
-           
-            return new Result(Status.Failed, "Could not clear " +
-                "App Settings used for database import trigger...");
-        }
-
-        public Result _WaitForDBImportInAppService()
-        {
-            string checkDbImportStatusNestedCommand = String.Format("cat {0}", Constants.LIN_APP_DB_STATUS_FILE_PATH);
-            Stopwatch timer = Stopwatch.StartNew();
-            int maxRetryCount = 2000;
-
-            for (int i=0; i<maxRetryCount; i++)
-            {
-                KuduCommandApiResult checkDbImportStatusResult = HelperUtils.ExecuteKuduCommandApi(checkDbImportStatusNestedCommand, this._ftpUserName, this._ftpPassword, this._appServiceName);
-                if (checkDbImportStatusResult.status == Status.Completed
-                    && checkDbImportStatusResult.exitCode == 0
-                    && checkDbImportStatusResult.output != null)
-                {
-                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_SUCCESS_MESSAGE))
-                    {
-                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Completed, "Unable to validate MySQL import status.");
-                    }
-                    if (checkDbImportStatusResult.output.Contains(Constants.DB_IMPORT_FAILURE_MESSAGE))
-                    {
-                        HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Failed, "Could not import MySQL data on destination site.");
-                    }
-                }
-
-                HelperUtils.WriteOutputWithRC("Waiting for MySQL database import to finish. Elapsed time = " 
-                    + (timer.ElapsedMilliseconds / 1000) + " seconds.", this._progressViewRTextBox);
-                Thread.Sleep(10000);
-            }
-
-            timer.Stop();
-            HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-            return new Result(Status.Failed, "Unable to validate MySQL import status on destination site.");
         }
     }
 }
