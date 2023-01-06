@@ -134,7 +134,7 @@ namespace WordPressMigrationTool
             catch
             {
                 return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice. " +
-                    "Please check internet connectivity before trying again.");
+                    "Please ensure the destination site is a WordPress on Linux app with the default database app settings before retrying.");
             }
         }
 

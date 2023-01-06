@@ -149,8 +149,7 @@ namespace WordPressMigrationTool
             else if (e.BytesReceived  - this._lastCheckpointCountForDisplay >= displayWindowSize)
             {
                 this._lastCheckpointCountForDisplay = e.BytesReceived;
-                string outputString = "Download progress - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) + " MB received out of "
-                    + ((e.TotalBytesToReceive == -1) ? "NA" : String.Format("{0:0.0}", (e.TotalBytesToReceive / conversionFactorToMB))) + " MB";
+                string outputString = "Download progress - " + String.Format("{0:0.0}", (e.BytesReceived / conversionFactorToMB)) + " MB received";
                 HelperUtils.WriteOutputWithRC(outputString, this._progressViewRTextBox);
             }
         }
