@@ -7,6 +7,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage;
 using MySqlX.XDevAPI;
 using System;
+using Azure.Identity;
 
 namespace WordPressMigrationTool
 {
@@ -15,13 +16,15 @@ namespace WordPressMigrationTool
         private RichTextBox? _progressViewRTextBox;
         private string[]  _previousMigrationStatus;
         private string _migrationStatusFilePath;
+        private WebSiteResource _destinationSiteResource;
 
         public ImportService() { }
 
-        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus)
+        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, WebSiteResource destinationSiteResource)
         {
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
+            this._destinationSiteResource = destinationSiteResource;
         }
 
         public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
@@ -45,14 +48,12 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, "Final database name should not be empty!");
             }
 
-            WebSiteResource webAppResource = null;
             this._migrationStatusFilePath= Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
 
             try
             {
                 Stopwatch timer = Stopwatch.StartNew();
 
-                webAppResource = AzureManagementUtils.GetWebSiteResource(destinationSite.subscriptionId, destinationSite.resourceGroupName, destinationSite.webAppName);
                 destinationSite.databaseName = newDatabaseName;
 
                 HelperUtils.WriteOutputWithNewLine("Successfully retrieved the details... time taken="
@@ -61,7 +62,7 @@ namespace WordPressMigrationTool
 
                 this.ClearImportFilesDirLocal();
 
-                Result result = this.TriggerDestinationSiteMigrationState(webAppResource);
+                Result result = this.TriggerDestinationSiteMigrationState(this._destinationSiteResource);
                 if (result.status != Status.Completed)
                 {
                     return result;
@@ -70,66 +71,66 @@ namespace WordPressMigrationTool
                 result = this.ClearMigrateDirInDestinationSite(destinationSite, "1");
                 if (result.status != Status.Completed) 
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
 
                 result = this.ValidateWPRootInDestinationSite(destinationSite);
                 if (result.status != Status.Completed)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
 
                 result = ImportAppServiceData(destinationSite);
                 if (result.status != Status.Completed)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
 
-                result = ImportDatabaseContent(destinationSite, destinationSite.databaseName, webAppResource);
+                result = ImportDatabaseContent(destinationSite, destinationSite.databaseName, this._destinationSiteResource);
                 if (result.status != Status.Completed)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
 
                 // Update DATABASE_NAME app setting to the new DB name
-                if (!this.UpdateDatabaseNameAppSetting(webAppResource, destinationSite))
+                if (!this.UpdateDatabaseNameAppSetting(this._destinationSiteResource, destinationSite))
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return new Result(Status.Failed, "Couldn't update Database name application setting.");
                 }
 
-                result = this.PostProcessingImport(destinationSite, destinationSite.databaseName, webAppResource);
+                result = this.PostProcessingImport(destinationSite, destinationSite.databaseName, this._destinationSiteResource);
                 if (result.status != Status.Completed)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
                 
                 result = this.ClearMigrateDirInDestinationSite(destinationSite, "2");
                 if (result.status != Status.Completed)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                     return result;
                 }
                 
-                result = this.RevertDestinationSiteMigrationState(webAppResource);
+                result = this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                 if (result.status != Status.Completed)
                 {
                     return result;
                 }
 
-                webAppResource.Restart();
+                this._destinationSiteResource.Restart();
                 return new Result(Status.Completed, Constants.SUCCESS_IMPORT_MESSAGE);
             }
             catch (Exception ex)
             {
-                if (webAppResource != null)
+                if (this._destinationSiteResource != null)
                 {
-                    this.RevertDestinationSiteMigrationState(webAppResource);
+                    this.RevertDestinationSiteMigrationState(this._destinationSiteResource);
                 }
                 return new Result(Status.Failed, ex.Message);
             }
@@ -484,7 +485,7 @@ namespace WordPressMigrationTool
                 }
             }
             catch { }
-            return new Result(Status.Failed, "Unable to initiate MySQL import process on destination site...");
+            return new Result(Status.Failed, "Unable to initiate post processing on destination linux site. Please retry migration...");
         }
 
         // removes app settings from destination app service that trigger migration script
@@ -536,8 +537,15 @@ namespace WordPressMigrationTool
                     }
                     if (checkDbImportStatusResult.output.Contains(Constants.IMPORT_FAILURE_MESSAGE))
                     {
+                        string errorMsg = "Could not complete post processing on destination site.";
+                        if (checkDbImportStatusResult.output.Contains(Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX))
+                        {
+                            int startInd = checkDbImportStatusResult.output.LastIndexOf(Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX) + Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX.Length;
+                            int endInd = checkDbImportStatusResult.output.IndexOf("\n", startInd);
+                            errorMsg += checkDbImportStatusResult.output.Substring(startInd, endInd-startInd);
+                        }
                         HelperUtils.WriteOutputWithNewLine("", this._progressViewRTextBox);
-                        return new Result(Status.Failed, "Could not complete post processing on destination site.");
+                        return new Result(Status.Failed, errorMsg);
                     }
                 }
 
@@ -559,10 +567,11 @@ namespace WordPressMigrationTool
             string removeLineCommand = "sed -i '/{0}/d' " + Constants.LIN_APP_DB_STATUS_FILE_PATH;
             KuduCommandApiResult removeFailureMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_FAILURE_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
             KuduCommandApiResult removeSuccessMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.IMPORT_SUCCESS_MESSAGE), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
+            KuduCommandApiResult removeErrorMessageResult = HelperUtils.ExecuteKuduCommandApi(String.Format(removeLineCommand, Constants.LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX), destinationSiteInfo.ftpUsername, destinationSiteInfo.ftpPassword, destinationSiteInfo.webAppName);
 
-            if (removeFailureMessageResult.status != Status.Completed || removeSuccessMessageResult.status != Status.Completed)
+            if (removeFailureMessageResult.status != Status.Completed || removeSuccessMessageResult.status != Status.Completed || removeErrorMessageResult.status != Status.Completed)
             {
-                return new Result(Status.Failed, "Couldn't initialize import status file on " + destinationSiteInfo.webAppName + " app.");
+                return new Result(Status.Failed, "Couldn't initialize import status file on " + destinationSiteInfo.webAppName + " app. Please retry by restarting the migration tool.");
             }
             return new Result(Status.Completed, "");
         }

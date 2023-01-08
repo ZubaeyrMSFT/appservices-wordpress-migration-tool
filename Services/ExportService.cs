@@ -1,4 +1,5 @@
-﻿using Azure.ResourceManager.AppService;
+﻿using Azure.Identity;
+using Azure.ResourceManager.AppService;
 using MySqlX.XDevAPI.Common;
 using System;
 using System.Diagnostics;
@@ -42,8 +43,6 @@ namespace WordPressMigrationTool
                 string migrationStatusFile = Environment.ExpandEnvironmentVariables(Constants.MIGRATION_STATUSFILE_PATH);
 
                 Stopwatch timer = Stopwatch.StartNew();
-
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(sourceSite.subscriptionId, sourceSite.resourceGroupName, sourceSite.webAppName);
 
                 if (this._previousMigrationStatus.Contains(Constants.StatusMessages.exportCompleted))
                 {

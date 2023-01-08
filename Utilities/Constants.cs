@@ -6,6 +6,7 @@ namespace WordPressMigrationTool.Utilities
     {
         public const string MigrationToolVersion = "WPMigrationTool";
         public const string AZURE_PORTAL_URL = "https://ms.portal.azure.com/#create/WordPress.WordPress";
+        public const string PHP_VERSION_COMPATIBILITY_CHART_URL = "https://go.microsoft.com/fwlink/?linkid=2221113";
 
         public const int KUDU_ZIP_API_MAX_UPLOAD_LIMIT = 25000000;     // 25 Million Bytes
         public const int BLOB_FILE_UPLOAD_LIMIT = 25000000;            // 25 Million Bytes
@@ -93,6 +94,7 @@ namespace WordPressMigrationTool.Utilities
         public const string IMPORT_SUCCESS_MESSAGE = "IMPORT_POST_PROCESSING_COMPLETED";
         public const string IMPORT_FAILURE_MESSAGE = "IMPORT_POST_PROCESSING_FAILED";
         public const string LIN_APP_DB_STATUS_FILE_PATH = "/home/dev/migrate/import_status.txt";
+        public const string LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX = "MIGRATION_ERROR:";
 
         public const string LINUXFXVERSION_PREFIX = "WORDPRESS|";
         public const string MCR_LATEST_IMAGE_LINUXFXVERSION = "mcr.microsoft.com/appsvc/wordpress-alpine-php:latest";

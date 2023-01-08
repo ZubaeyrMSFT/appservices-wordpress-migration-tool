@@ -1,4 +1,5 @@
-﻿using Azure.ResourceManager.AppService;
+﻿using Azure.Identity;
+using Azure.ResourceManager.AppService;
 using Microsoft.VisualBasic;
 using System;
 using WordPressMigrationTool.Utilities;
@@ -13,13 +14,17 @@ namespace WordPressMigrationTool
         private WebSiteResource _sourceSiteResourse;
         private WebSiteResource _destinationSiteResource;
         private RichTextBox? _progressViewRTextBox;
+        private MigrationUX _migrationUxForm;
         private string[] _previousMigrationStatus;
+        private DefaultAzureCredential _azureCredential;
 
-        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus) { 
+        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, MigrationUX migrationUxForm) { 
             this._sourceSiteInfo = sourceSiteInfo;
             this._destinationSiteInfo = destinationSiteInfo;
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
+            this._migrationUxForm = migrationUxForm;
+            this._azureCredential = migrationUxForm._azureCredential;
         }
 
         public Result Migrate()
@@ -44,9 +49,9 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
-                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource);
+                ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource, this._migrationUxForm);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
-                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus);
+                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._destinationSiteResource);
 
                 Result validationRes = validationService.ValidateMigrationInput(this._sourceSiteInfo, this._destinationSiteInfo);
                 if (validationRes.status != Status.Completed)
@@ -90,7 +95,7 @@ namespace WordPressMigrationTool
                     "for {0} app... ", this._sourceSiteInfo.webAppName), this._progressViewRTextBox);
             try
             {
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName);
+                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName, this._azureCredential);
                 PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
                 string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
                 HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
@@ -115,7 +120,7 @@ namespace WordPressMigrationTool
                     + "details for {0}...", this._destinationSiteInfo.webAppName), this._progressViewRTextBox);
             try
             {
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName);
+                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, this._azureCredential);
                 IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
                 PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
 
@@ -132,7 +137,7 @@ namespace WordPressMigrationTool
             catch
             {
                 return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice. " +
-                    "Please check internet connectivity before trying again.");
+                    "Please ensure the destination site is a WordPress on Linux app with the default database app settings before retrying.");
             }
         }
 

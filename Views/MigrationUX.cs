@@ -1,9 +1,11 @@
+using Azure.Identity;
 using Azure.ResourceManager.Resources;
 using MySqlX.XDevAPI.Common;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WordPressMigrationTool.Utilities;
 using WordPressMigrationTool.Views;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WordPressMigrationTool
 {
@@ -18,17 +20,41 @@ namespace WordPressMigrationTool
         private BackgroundWorker _linRgChangeWorker;
         private BackgroundWorker _winRgChangeWorker;
         private SubscriptionCollection _subscriptions;
+        public DefaultAzureCredential _azureCredential;
 
         public MigrationUX()
         {
-            GetSubscriptions();
-            InitializeBackgroundWorkers();
             InitializeComponent();
+
+            // Dsiable dropdowns and migrate button while initializing window and ARM api calls
+            ToggleDropdownStates(false);
+            InitializeMigrationWindow();
+            GetSubscriptions();
+
+            // Initialize background workers for running async operations on dropdown value change to unblock UI
+            InitializeBackgroundWorkers();
+            
             this.progressViewUX = new ProgressUX();
             progressViewUX.Hide();
 
+            //enable dropdowns and migrate button
+            ToggleDropdownStates(true);
+            InitializeMigrationStatusFile();
+        }
+
+        private void InitializeMigrationWindow()
+        {
+            // show Migration window
             this.Show();
-            this.InitializeMigrationStatusFile();
+
+            // retrieve Azure default credential
+            this._azureCredential = new DefaultAzureCredential(true);
+        }
+
+        private void ToggleDropdownStates(bool state)
+        {
+            enableLinuxDropdowns(state);
+            enableWindowsDropdowns(state);
         }
 
         // Initialize background workers to call ARM APIs asynchronously
@@ -58,7 +84,7 @@ namespace WordPressMigrationTool
         // Retreives Subscriptions using the default Azure credentials via ARM API
         private void GetSubscriptions()
         {
-            this._subscriptions = AzureManagementUtils.GetSubscriptions();
+            this._subscriptions = AzureManagementUtils.GetSubscriptions(this._azureCredential);
             this.LinSubscriptions = new List<Subscription>();
             this.WinSubscriptions = new List<Subscription>();
 
@@ -77,6 +103,14 @@ namespace WordPressMigrationTool
 
             this.WinSubscriptions.Sort((x, y) => x.Name.CompareTo(y.Name));
             this.WinSubscriptions.Insert(0, new Subscription("Select a Subscription", " "));
+
+            this.winSubscriptionComboBox.DataSource = this.WinSubscriptions;
+            this.winSubscriptionComboBox.DisplayMember = "Name";
+            this.winSubscriptionComboBox.ValueMember = "Id";
+
+            this.linuxSubscriptionComboBox.DataSource = this.LinSubscriptions;
+            this.linuxSubscriptionComboBox.DisplayMember = "Name";
+            this.linuxSubscriptionComboBox.ValueMember = "Id";
         }
 
         private string getSubscriptionResourceId (string subscriptionId)
@@ -320,7 +354,7 @@ namespace WordPressMigrationTool
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
 
-            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>());
+            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>(), this);
             ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
             this._childThread = new Thread(childref);
             this._childThread.Start();
@@ -377,7 +411,7 @@ namespace WordPressMigrationTool
                 this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
                 progressViewUX.Show();
 
-                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages);
+                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, this);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
                 this._childThread.Start();
