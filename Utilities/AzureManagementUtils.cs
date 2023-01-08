@@ -13,9 +13,9 @@ namespace WordPressMigrationTool.Utilities
 {
     public static class AzureManagementUtils
     {
-        public static WebSiteResource GetWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName)
+        public static WebSiteResource GetWebSiteResource(string subscriptionId, string resourceGroupName, string webAppName, DefaultAzureCredential azureCredential)
         {
-            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            ArmClient client = new ArmClient(azureCredential);
             if (client == null)
             {
                 throw new InvalidCredentialException("Unable to authenticated to Azure Services");
@@ -45,9 +45,9 @@ namespace WordPressMigrationTool.Utilities
             return webSite;
         }
 
-        public static SubscriptionCollection GetSubscriptions()
+        public static SubscriptionCollection GetSubscriptions(DefaultAzureCredential azureCredential)
         {
-            ArmClient client = new ArmClient(new DefaultAzureCredential(true));
+            ArmClient client = new ArmClient(azureCredential);
             if (client == null)
             {
                 throw new InvalidCredentialException("Unable to authenticated to Azure Services");

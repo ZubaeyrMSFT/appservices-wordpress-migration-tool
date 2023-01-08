@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Azure.ResourceManager.Resources;
 using MySqlX.XDevAPI.Common;
 using System.ComponentModel;
@@ -19,6 +20,7 @@ namespace WordPressMigrationTool
         private BackgroundWorker _linRgChangeWorker;
         private BackgroundWorker _winRgChangeWorker;
         private SubscriptionCollection _subscriptions;
+        public DefaultAzureCredential _azureCredential;
 
         public MigrationUX()
         {
@@ -45,12 +47,8 @@ namespace WordPressMigrationTool
             // show Migration window
             this.Show();
 
-            // display popup message box
-            MessageBox.Show("Azure login is required prior to launching migration tool. Click OK to open Azure authentication page.", "", MessageBoxButtons.OK, MessageBoxIcon.Information,
-                                                 MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
-            
-            // One-time azure login
-            ShellExecute.Login("az login");
+            // retrieve Azure default credential
+            this._azureCredential = new DefaultAzureCredential(true);
         }
 
         private void ToggleDropdownStates(bool state)
@@ -86,7 +84,7 @@ namespace WordPressMigrationTool
         // Retreives Subscriptions using the default Azure credentials via ARM API
         private void GetSubscriptions()
         {
-            this._subscriptions = AzureManagementUtils.GetSubscriptions();
+            this._subscriptions = AzureManagementUtils.GetSubscriptions(this._azureCredential);
             this.LinSubscriptions = new List<Subscription>();
             this.WinSubscriptions = new List<Subscription>();
 
