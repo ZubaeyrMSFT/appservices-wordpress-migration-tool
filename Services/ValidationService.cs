@@ -95,7 +95,6 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
-
                 return result;
             } 
             catch (Exception ex)
@@ -223,19 +222,7 @@ namespace WordPressMigrationTool
                 if (!continueMigration)
                 {
                     return new Result(Status.Failed, "Stopping current migration.");
-                }/*
-                string message = String.Format("Source site ({0}) and destination site ({1}) use different PHP versions. " +
-                    "This may lead to incompatibilities with themes/plugins after migration. Do you want continue?", this._sourceSiteInfo.webAppName, this._destinationSiteInfo.webAppName);
-                string caption = "Different PHP versions detected!";
-
-
-                var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Warning);
-                if (result == DialogResult.Cancel)  
-                {
-                    return new Result(Status.Failed, "Stopping current migration.");
-                }*/
+                }
             }
 
             return new Result(Status.Completed, "");

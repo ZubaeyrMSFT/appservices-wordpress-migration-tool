@@ -301,6 +301,11 @@ namespace WordPressMigrationTool
             this._linRgChangeWorker.RunWorkerAsync(parameters);
         }
 
+        public void updateCancelButtonTextToClose()
+        {
+            this.cancelButton.Text = "Close";
+        }
+
         public void enableWindowsDropdowns(bool isEnabled)
         {
             this.winSubscriptionComboBox.Enabled = isEnabled;

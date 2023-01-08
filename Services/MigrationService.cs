@@ -177,14 +177,12 @@ namespace WordPressMigrationTool
                 Result res = this.Migrate();
                 HelperUtils.WriteOutputWithNewLine(res.message, this._progressViewRTextBox);
 
-                //
+                // logs Migration status
                 string logMessage = String.Format("({0}; {1}; {2}; {3}; {4}; {5}; {6}; {7})", (res.status == Status.Completed ? "MIGRATION_SUCCESSFUL" : "MIGRATION_FAILED"), 
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
-
-                // logs Migration status
-                System.Diagnostics.Debug.WriteLine(logMessage);
                 this.LogMigrationStatusMessage(logMessage);
+                
                 
                 if (res.status == Status.Failed || res.status == Status.Cancelled)
                 {
