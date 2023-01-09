@@ -315,11 +315,11 @@ namespace WordPressMigrationTool
             // featureCheckBox
             //
             this.featureCheckBox.Location = new System.Drawing.Point(19, 262);
-            this.featureCheckBox.Size = new System.Drawing.Size(600, 33);
+            this.featureCheckBox.Size = new System.Drawing.Size(600, 50);
             this.featureCheckBox.Appearance = Appearance.Normal;
             this.featureCheckBox.Checked = true;
-            this.featureCheckBox.Font = new System.Drawing.Font("Segoe UI", 5.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.featureCheckBox.Text = "Retain AFD, CDN or Blob Storage features after migration.\r\n(Enabling this will install W3 Total Cache plugin and override its settings)";
+            this.featureCheckBox.Font = new System.Drawing.Font("Segoe UI", 7.0F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.featureCheckBox.Text = "Re-configure AFD, CDN or Blob Storage features if enabled already after migration. \r\n(Enabling this will install W3 Total Cache plugin and override its settings)";
             // 
             // flowLayoutPanel2
             // 

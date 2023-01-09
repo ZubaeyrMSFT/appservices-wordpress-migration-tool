@@ -17,6 +17,7 @@ namespace WordPressMigrationTool
         private WebSiteResource _sourceSiteResource;
         private WebSiteResource _destinationSiteResource;
         private MigrationUX _migrationUxForm;
+        private List<string> _validationMessages;
 
         public ValidationService() { }
 
@@ -27,6 +28,7 @@ namespace WordPressMigrationTool
             this._sourceSiteResource = sourceSiteResource;
             this._destinationSiteResource = destinationSiteResource;
             this._migrationUxForm = migrationUxForm;
+            this._validationMessages = new List<string>();
         }
 
         public Result ValidateMigrationInput(SiteInfo sourceSite, SiteInfo destinationSite)
@@ -95,7 +97,9 @@ namespace WordPressMigrationTool
                 {
                     return result;
                 }
-                return result;
+
+                return ShowValidationErrorPopup();
+
             } 
             catch (Exception ex)
             {
@@ -117,16 +121,7 @@ namespace WordPressMigrationTool
             // Verify if the destination site uses an official WordPress on Linux image.
             if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION || !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
             {
-                string message = String.Format("The destination site ({0}) doesn't use an official WordPress on Linux image. This may cause the migration to fail. It is recommended " +
-                    "to coninue only if the image being used is a minor modification of the official Image. Do you want to continue?", this._destinationSiteInfo.webAppName);
-                string caption = "Invalid Image Detected!";
-                var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.OKCancel,
-                                     MessageBoxIcon.Warning);
-                if (result == DialogResult.Cancel)
-                {
-                    return new Result(Status.Failed, "Stopping current migration.");
-                }
+                this._validationMessages.Add("IMAGE_INVALID");
             }
 
             // Verify if the destination WordPress on Linux site has finished first time installation of WordPress
@@ -136,20 +131,10 @@ namespace WordPressMigrationTool
                 this._destinationSiteInfo.ftpUsername, 
                 this._destinationSiteInfo.ftpPassword, 
                 this._destinationSiteInfo.webAppName);
+            
             if (kuduCommandApiResult.status != Status.Completed || kuduCommandApiResult.exitCode != 0 || !kuduCommandApiResult.output.Contains(Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE))
             {
-                string message = String.Format("The destination site ({0}) hasn't finished installing WordPress. " +
-                    "It is advised to restart the site and wait for 5-10 minutes before trying again. Do you still want to continue?", 
-                    this._destinationSiteInfo.webAppName);
-                string caption = "Incomplete WordPress installation detected!";
-                var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.YesNo,
-                                     MessageBoxIcon.Warning);
-                
-                if (result == DialogResult.Cancel)
-                {
-                    return new Result(Status.Failed, "Stopping current migration.");
-                }
+                this._validationMessages.Add("FIRST_TIME_INSTALLATION");
             }
             return new Result(Status.Completed, "");
         }
@@ -166,19 +151,10 @@ namespace WordPressMigrationTool
                 isWpVersionDifferent = true;
             }
 
+            // Display warning message if PHP versions are different
             if (isWpVersionDifferent)
             {
-                string message = String.Format("The WordPress version of source site ({0}) is different from that of desitnation site ({1}). " +
-                   "Your plugins/themes maybe incompatible with the new site. It is recommended to update WordPress version in {2} site to match that of {3}. Do you want to continue anyway?", sourceSiteWpVersion, destinationSiteWpVersion, this._sourceSiteInfo.webAppName, this._destinationSiteInfo.webAppName);
-                string caption = "WordPress Version Conflict Detected!";
-
-                var result = MessageBox.Show(message, caption,
-                                     MessageBoxButtons.YesNo,
-                                     MessageBoxIcon.Warning);
-                if (result == DialogResult.Cancel)
-                {
-                    return new Result(Status.Failed, "Stopping current migration.");
-                }
+                this._validationMessages.Add("WP_VERSION");
             }
 
             return new Result(Status.Completed, "");
@@ -213,16 +189,7 @@ namespace WordPressMigrationTool
 
             if (String.IsNullOrEmpty(sourceSitePhpVersion) || String.IsNullOrEmpty(destinationSitePhpVersion) || sourceSitePhpVersion != destinationSitePhpVersion)
             {
-                bool continueMigration = true;
-                PhpPopupForm phpWarningPopup = new PhpPopupForm(ref continueMigration);
-                phpWarningPopup.StartPosition = FormStartPosition.Manual;
-                phpWarningPopup.Location = new Point(this._migrationUxForm.Location.X + 100, this._migrationUxForm.Location.Y + 110);
-                phpWarningPopup.ShowDialog();
-                phpWarningPopup.Dispose();
-                if (!continueMigration)
-                {
-                    return new Result(Status.Failed, "Stopping current migration.");
-                }
+                this._validationMessages.Add("PHP_VERSION");
             }
 
             return new Result(Status.Completed, "");
@@ -248,6 +215,23 @@ namespace WordPressMigrationTool
             }
 
             return null;
+        }
+
+        private Result ShowValidationErrorPopup()
+        {
+            System.Diagnostics.Debug.WriteLine("showing validaiton popup.");
+            bool continueMigration = true;
+            ValidationPopupForm phpWarningPopup = new ValidationPopupForm(continueMigration, this._validationMessages, this._sourceSiteInfo, this._destinationSiteInfo);
+            phpWarningPopup.StartPosition = FormStartPosition.Manual;
+            phpWarningPopup.Location = new Point(this._migrationUxForm.Location.X + 50, this._migrationUxForm.Location.Y + 60);
+            phpWarningPopup.ShowDialog();
+            phpWarningPopup.Dispose();
+            if (!continueMigration)
+            {
+                return new Result(Status.Failed, "Stopping current migration.");
+            }
+
+            return new Result(Status.Completed, "");
         }
     }
 }

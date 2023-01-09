@@ -485,7 +485,7 @@ namespace WordPressMigrationTool
                 appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
                 appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, databaseName);
                 appSettings.Add(Constants.MYSQL_DUMP_FILE_APP_SETTING, Constants.WIN_MYSQL_SQL_FILENAME);
-                appSettings.Add(Constants.RETAIN_WP_FEATURES_APP_SETTING, "True");
+                appSettings.Add(Constants.RETAIN_WP_FEATURES_APP_SETTING, this._retainWpFeatures.ToString());
                 if (AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings))
                 {
                     return new Result(Status.Completed, "");

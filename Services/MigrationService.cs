@@ -161,7 +161,7 @@ namespace WordPressMigrationTool
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteName + this._destinationSiteInfo.webAppName + Environment.NewLine);
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteResourceGroup + this._destinationSiteInfo.resourceGroupName + Environment.NewLine);
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteSubscription + this._destinationSiteInfo.subscriptionId + Environment.NewLine);
-                File.AppendAllText(statusFilePath, Constants.StatusMessages.retainWpFeatures + this._destinationSiteInfo.subscriptionId + Environment.NewLine);
+                File.AppendAllText(statusFilePath, Constants.StatusMessages.retainWpFeatures + this._retainWpFeatures.ToString() + Environment.NewLine);
             }
             else
             {
@@ -185,8 +185,7 @@ namespace WordPressMigrationTool
                     this._sourceSiteInfo.webAppName, this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, 
                     this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, res.message);
                 this.LogMigrationStatusMessage(logMessage);
-                
-                
+
                 if (res.status == Status.Failed || res.status == Status.Cancelled)
                 {
                     MessageBox.Show(res.message, "Failed!");
