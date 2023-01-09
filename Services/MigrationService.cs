@@ -17,14 +17,16 @@ namespace WordPressMigrationTool
         private MigrationUX _migrationUxForm;
         private string[] _previousMigrationStatus;
         private DefaultAzureCredential _azureCredential;
+        private bool _retainWpFeatures;
 
-        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, MigrationUX migrationUxForm) { 
+        public MigrationService(SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, MigrationUX migrationUxForm, bool retainWpFeatures) { 
             this._sourceSiteInfo = sourceSiteInfo;
             this._destinationSiteInfo = destinationSiteInfo;
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
             this._migrationUxForm = migrationUxForm;
             this._azureCredential = migrationUxForm._azureCredential;
+            this._retainWpFeatures = retainWpFeatures;
         }
 
         public Result Migrate()
@@ -51,7 +53,7 @@ namespace WordPressMigrationTool
 
                 ValidationService validationService = new ValidationService(this._progressViewRTextBox, this._previousMigrationStatus, this._sourceSiteResourse, this._destinationSiteResource, this._migrationUxForm);
                 ExportService exportService = new ExportService(this._progressViewRTextBox, this._previousMigrationStatus);
-                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._destinationSiteResource);
+                ImportService importService = new ImportService(this._progressViewRTextBox, this._previousMigrationStatus, this._destinationSiteResource, this._retainWpFeatures);
 
                 Result validationRes = validationService.ValidateMigrationInput(this._sourceSiteInfo, this._destinationSiteInfo);
                 if (validationRes.status != Status.Completed)
@@ -159,6 +161,7 @@ namespace WordPressMigrationTool
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteName + this._destinationSiteInfo.webAppName + Environment.NewLine);
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteResourceGroup + this._destinationSiteInfo.resourceGroupName + Environment.NewLine);
                 File.AppendAllText(statusFilePath, Constants.StatusMessages.destinationSiteSubscription + this._destinationSiteInfo.subscriptionId + Environment.NewLine);
+                File.AppendAllText(statusFilePath, Constants.StatusMessages.retainWpFeatures + this._destinationSiteInfo.subscriptionId + Environment.NewLine);
             }
             else
             {

@@ -17,14 +17,16 @@ namespace WordPressMigrationTool
         private string[]  _previousMigrationStatus;
         private string _migrationStatusFilePath;
         private WebSiteResource _destinationSiteResource;
+        private bool _retainWpFeatures;
 
         public ImportService() { }
 
-        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, WebSiteResource destinationSiteResource)
+        public ImportService(RichTextBox? progressViewRTextBox, string[] previousMigrationStatus, WebSiteResource destinationSiteResource, bool retainWpfeatures)
         {
             this._progressViewRTextBox = progressViewRTextBox;
             this._previousMigrationStatus = previousMigrationStatus;
             this._destinationSiteResource = destinationSiteResource;
+            this._retainWpFeatures = retainWpfeatures;
         }
 
         public Result ImportDataToDestinationSite(SiteInfo destinationSite, string newDatabaseName) {
@@ -323,11 +325,15 @@ namespace WordPressMigrationTool
                 return result;
             }
 
-            // Uploads WordPress Uploads folder to Blob container
-            result = this.UploadToBlobStorageIfEnabled(webAppResource);
-            if (result.status != Status.Completed)
+            // upload to WP uploads folder Blob storage only if user selected to retain WP features
+            if (this._retainWpFeatures)
             {
-                return result;
+                // Uploads WordPress Uploads folder to Blob container
+                result = this.UploadToBlobStorageIfEnabled(webAppResource);
+                if (result.status != Status.Completed)
+                {
+                    return result;
+                }
             }
 
             // waits for migration script to finish execution on destination app service
@@ -479,6 +485,7 @@ namespace WordPressMigrationTool
                 appSettings.Add(Constants.START_MIGRATION_APP_SETTING, "True");
                 appSettings.Add(Constants.NEW_DATABASE_NAME_APP_SETTING, databaseName);
                 appSettings.Add(Constants.MYSQL_DUMP_FILE_APP_SETTING, Constants.WIN_MYSQL_SQL_FILENAME);
+                appSettings.Add(Constants.RETAIN_WP_FEATURES_APP_SETTING, "True");
                 if (AzureManagementUtils.UpdateApplicationSettingForAppService(destinationSiteResource, appSettings))
                 {
                     return new Result(Status.Completed, "");
@@ -549,7 +556,7 @@ namespace WordPressMigrationTool
                     }
                 }
 
-                HelperUtils.WriteOutputWithRC("Waiting for post processing of import data. Elapsed time = "
+                HelperUtils.WriteOutputWithRC("Waiting for post processing of import data. This may take a while. Elapsed time = "
                     + (timer.ElapsedMilliseconds / 1000) + " seconds.", this._progressViewRTextBox);
                 Thread.Sleep(10000);
             }

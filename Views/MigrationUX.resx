@@ -57,6 +57,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="winSubscriptionComboBox.DataSource" mimetype="application/x-microsoft.net.object.binary.base64">
+    <value>
+        AAEAAAD/////AQAAAAAAAAAEAQAAAH9TeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW1N5
+        c3RlbS5TdHJpbmcsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVi
+        bGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAwAAAAZfaXRlbXMFX3NpemUIX3ZlcnNpb24GAAAI
+        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAABVTZWxlY3QgYSBTdWJzY3JpcHRpb24NAws=
+</value>
+  </data>
   <data name="winResourceGroupComboBox.DataSource" mimetype="application/x-microsoft.net.object.binary.base64">
     <value>
         AAEAAAD/////AQAAAAAAAAAEAQAAAH9TeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW1N5
@@ -70,7 +78,16 @@
         AAEAAAD/////AQAAAAAAAAAEAQAAAH9TeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW1N5
         c3RlbS5TdHJpbmcsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVi
         bGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAwAAAAZfaXRlbXMFX3NpemUIX3ZlcnNpb24GAAAI
-        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAABZTZWxlY3QgYSBXb3JkUHJlc3MgYXBwDQML
+        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAACFTZWxlY3QgYSBXb3JkUHJlc3Mgb24gV2luZG93cyBh
+        cHANAws=
+</value>
+  </data>
+  <data name="linuxSubscriptionComboBox.DataSource" mimetype="application/x-microsoft.net.object.binary.base64">
+    <value>
+        AAEAAAD/////AQAAAAAAAAAEAQAAAH9TeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW1N5
+        c3RlbS5TdHJpbmcsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVi
+        bGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAwAAAAZfaXRlbXMFX3NpemUIX3ZlcnNpb24GAAAI
+        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAABVTZWxlY3QgYSBTdWJzY3JpcHRpb24NAws=
 </value>
   </data>
   <data name="linuxResourceGroupComboBox.DataSource" mimetype="application/x-microsoft.net.object.binary.base64">
@@ -86,7 +103,8 @@
         AAEAAAD/////AQAAAAAAAAAEAQAAAH9TeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW1N5
         c3RlbS5TdHJpbmcsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVi
         bGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAwAAAAZfaXRlbXMFX3NpemUIX3ZlcnNpb24GAAAI
-        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAABZTZWxlY3QgYSBXb3JkUHJlc3MgQXBwDQML
+        CAkCAAAAAQAAAAEAAAARAgAAAAQAAAAGAwAAAB9TZWxlY3QgYSBXb3JkUHJlc3Mgb24gTGludXggYXBw
+        DQML
 </value>
   </data>
 </root>

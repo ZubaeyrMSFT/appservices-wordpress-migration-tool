@@ -89,6 +89,7 @@ namespace WordPressMigrationTool.Utilities
         public const string START_MIGRATION_APP_SETTING = "MIGRATION_IN_PROGRESS";
         public const string NEW_DATABASE_NAME_APP_SETTING = "MIGRATE_NEW_DATABASE_NAME";
         public const string MYSQL_DUMP_FILE_APP_SETTING = "MIGRATE_MYSQL_DUMP_FILE";
+        public const string RETAIN_WP_FEATURES_APP_SETTING = "MIGRATE_RETAIN_WP_FEATURES";
 
         public const string FIRST_TIME_SETUP_COMPLETETED_MESSAGE = "FIRST_TIME_SETUP_COMPLETED";
         public const string IMPORT_SUCCESS_MESSAGE = "IMPORT_POST_PROCESSING_COMPLETED";
@@ -108,6 +109,7 @@ namespace WordPressMigrationTool.Utilities
             public const string destinationSiteResourceGroup = "Destination Site ResourceGroup : ";
             public const string destinationSiteSubscription = "Destination Site Subscription : ";
             public const string previousMigrationBlobContainerName = "Previous Migration Blob Container : ";
+            public const string retainWpFeatures = "Retain WP Features : ";
             public const string migrationFailed = "MIGRATION_FAILED";
             public const string migrationCompleted = "MIGRATION_COMPLETED";
             public const string exportCompleted = "EXPORT_COMPLETED";

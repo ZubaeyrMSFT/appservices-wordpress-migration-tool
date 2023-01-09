@@ -53,6 +53,7 @@ namespace WordPressMigrationTool
             this.linuxSubscriptionComboBox = new System.Windows.Forms.ComboBox();
             this.linuxResourceGroupComboBox = new System.Windows.Forms.ComboBox();
             this.linuxAppServiceComboBox = new System.Windows.Forms.ComboBox();
+            this.featureCheckBox = new System.Windows.Forms.CheckBox();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.bottomTableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.bottomTableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -75,7 +76,7 @@ namespace WordPressMigrationTool
             this.mainFlowLayoutPanel1.Location = new System.Drawing.Point(1, 3);
             this.mainFlowLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.mainFlowLayoutPanel1.Name = "mainFlowLayoutPanel1";
-            this.mainFlowLayoutPanel1.Size = new System.Drawing.Size(649, 590);
+            this.mainFlowLayoutPanel1.Size = new System.Drawing.Size(649, 637);
             this.mainFlowLayoutPanel1.TabIndex = 0;
             // 
             // mainPanelTableLayout1
@@ -90,7 +91,7 @@ namespace WordPressMigrationTool
             this.mainPanelTableLayout1.RowCount = 2;
             this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.mainPanelTableLayout1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.mainPanelTableLayout1.Size = new System.Drawing.Size(644, 590);
+            this.mainPanelTableLayout1.Size = new System.Drawing.Size(644, 627);
             this.mainPanelTableLayout1.TabIndex = 0;
             // 
             // windowsDetailsGroupBox
@@ -194,11 +195,12 @@ namespace WordPressMigrationTool
             this.linuxDetailsGroupBox.Controls.Add(this.createNewLabel);
             this.linuxDetailsGroupBox.Controls.Add(this.createNewLinkLabel);
             this.linuxDetailsGroupBox.Controls.Add(this.linuxDetailsTableLayout);
+            this.linuxDetailsGroupBox.Controls.Add(this.featureCheckBox);
             this.linuxDetailsGroupBox.Location = new System.Drawing.Point(4, 300);
             this.linuxDetailsGroupBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.linuxDetailsGroupBox.Name = "linuxDetailsGroupBox";
             this.linuxDetailsGroupBox.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.linuxDetailsGroupBox.Size = new System.Drawing.Size(630, 285);
+            this.linuxDetailsGroupBox.Size = new System.Drawing.Size(630, 315);
             this.linuxDetailsGroupBox.TabIndex = 1;
             this.linuxDetailsGroupBox.TabStop = false;
             this.linuxDetailsGroupBox.Text = "Destination Site (Linux App Service)";
@@ -244,7 +246,7 @@ namespace WordPressMigrationTool
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 33F));
             this.linuxDetailsTableLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 33F));
-            this.linuxDetailsTableLayout.Size = new System.Drawing.Size(609, 209);
+            this.linuxDetailsTableLayout.Size = new System.Drawing.Size(609, 187);
             this.linuxDetailsTableLayout.TabIndex = 0;
             // 
             // linuxSubscriptionIdLabel
@@ -260,7 +262,7 @@ namespace WordPressMigrationTool
             // linuxResourceGroupLabel
             // 
             this.linuxResourceGroupLabel.AutoSize = true;
-            this.linuxResourceGroupLabel.Location = new System.Drawing.Point(4, 69);
+            this.linuxResourceGroupLabel.Location = new System.Drawing.Point(4, 62);
             this.linuxResourceGroupLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linuxResourceGroupLabel.Name = "linuxResourceGroupLabel";
             this.linuxResourceGroupLabel.Size = new System.Drawing.Size(138, 25);
@@ -270,7 +272,7 @@ namespace WordPressMigrationTool
             // linuxAppServiceNameLabel
             // 
             this.linuxAppServiceNameLabel.AutoSize = true;
-            this.linuxAppServiceNameLabel.Location = new System.Drawing.Point(4, 138);
+            this.linuxAppServiceNameLabel.Location = new System.Drawing.Point(4, 124);
             this.linuxAppServiceNameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linuxAppServiceNameLabel.Name = "linuxAppServiceNameLabel";
             this.linuxAppServiceNameLabel.Size = new System.Drawing.Size(158, 25);
@@ -291,7 +293,7 @@ namespace WordPressMigrationTool
             // 
             // linuxResourceGroupComboBox
             // 
-            this.linuxResourceGroupComboBox.Location = new System.Drawing.Point(186, 74);
+            this.linuxResourceGroupComboBox.Location = new System.Drawing.Point(186, 67);
             this.linuxResourceGroupComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.linuxResourceGroupComboBox.Name = "linuxResourceGroupComboBox";
             this.linuxResourceGroupComboBox.Size = new System.Drawing.Size(400, 33);
@@ -302,7 +304,7 @@ namespace WordPressMigrationTool
             // 
             // linuxAppServiceComboBox
             // 
-            this.linuxAppServiceComboBox.Location = new System.Drawing.Point(186, 143);
+            this.linuxAppServiceComboBox.Location = new System.Drawing.Point(186, 129);
             this.linuxAppServiceComboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.linuxAppServiceComboBox.Name = "linuxAppServiceComboBox";
             this.linuxAppServiceComboBox.Size = new System.Drawing.Size(400, 33);
@@ -310,10 +312,19 @@ namespace WordPressMigrationTool
             this.linuxAppServiceComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             this.linuxAppServiceComboBox.DataSource = HelperUtils.GetDefaultDropdownList("Select a WordPress on Linux app");
             // 
+            // featureCheckBox
+            //
+            this.featureCheckBox.Location = new System.Drawing.Point(19, 262);
+            this.featureCheckBox.Size = new System.Drawing.Size(600, 33);
+            this.featureCheckBox.Appearance = Appearance.Normal;
+            this.featureCheckBox.Checked = true;
+            this.featureCheckBox.Font = new System.Drawing.Font("Segoe UI", 5.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.featureCheckBox.Text = "Retain AFD, CDN or Blob Storage features after migration.\r\n(Enabling this will install W3 Total Cache plugin and override its settings)";
+            // 
             // flowLayoutPanel2
             // 
             this.flowLayoutPanel2.Controls.Add(this.bottomTableLayoutPanel1);
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(5, 598);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(5, 645);
             this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
             this.flowLayoutPanel2.Size = new System.Drawing.Size(649, 83);
@@ -375,7 +386,7 @@ namespace WordPressMigrationTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(662, 685);
+            this.ClientSize = new System.Drawing.Size(662, 733);
             this.Controls.Add(this.flowLayoutPanel2);
             this.Controls.Add(this.mainFlowLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -427,5 +438,6 @@ namespace WordPressMigrationTool
         private ComboBox linuxAppServiceComboBox;
         private Label createNewLabel;
         private LinkLabel createNewLinkLabel;
+        private CheckBox featureCheckBox;
     }
 }

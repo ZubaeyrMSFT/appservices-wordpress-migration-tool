@@ -359,7 +359,7 @@ namespace WordPressMigrationTool
             SiteInfo sourceSiteInfo = new SiteInfo(winSubscriptionId, winResourceGroupName, winAppServiceName);
             SiteInfo destinationSiteInfo = new SiteInfo(linuxSubscriptionId, linuxResourceGroupName, linuxAppServiceName);
 
-            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>(), this);
+            MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, Array.Empty<string>(), this, this.featureCheckBox.Checked);
             ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
             this._childThread = new Thread(childref);
             this._childThread.Start();
@@ -369,6 +369,7 @@ namespace WordPressMigrationTool
         {
             SiteInfo sourceSiteInfo = null;
             SiteInfo destinationSiteInfo = null;
+            bool retainWpFeatures = true;
 
             string directoryPath = Environment.ExpandEnvironmentVariables(Constants.DATA_EXPORT_PATH);
             if (!Directory.Exists(directoryPath))
@@ -381,9 +382,9 @@ namespace WordPressMigrationTool
             {
                 string[] statusMessages = File.ReadAllLines(statusFilePath);
 
-                if (this.isMigrationStatusFileValid(statusMessages, out sourceSiteInfo, out destinationSiteInfo))
+                if (this.isMigrationStatusFileValid(statusMessages, out sourceSiteInfo, out destinationSiteInfo, out retainWpFeatures))
                 {
-                    this.showResumeMigrationDialogBox(statusMessages, sourceSiteInfo, destinationSiteInfo);
+                    this.showResumeMigrationDialogBox(statusMessages, sourceSiteInfo, destinationSiteInfo, retainWpFeatures);
                     return;
                 }
                 else
@@ -400,7 +401,7 @@ namespace WordPressMigrationTool
             }
         }
 
-        private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo)
+        private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, bool retainWpFeatures)
         {
             string message =
             String.Format("Detected a previous unfinished migration from source site {0} to destination site {1}.. Do you want to resume?", sourceSiteInfo.webAppName, destinationSiteInfo.webAppName);
@@ -416,14 +417,14 @@ namespace WordPressMigrationTool
                 this.mainFlowLayoutPanel1.Controls.Add(progressViewUX);
                 progressViewUX.Show();
 
-                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, this);
+                MigrationService migrationService = new MigrationService(sourceSiteInfo, destinationSiteInfo, progressViewUX.progressViewRTextBox, statusMessages, this, retainWpFeatures);
                 ThreadStart childref = new(migrationService.MigrateAsyncForWinUI);
                 this._childThread = new Thread(childref);
                 this._childThread.Start();
             }
         }
 
-        private bool isMigrationStatusFileValid(string[] statusMessages, out SiteInfo sourceSiteInfo, out SiteInfo destinationSiteInfo)
+        private bool isMigrationStatusFileValid(string[] statusMessages, out SiteInfo sourceSiteInfo, out SiteInfo destinationSiteInfo, out bool retainWpfeatures)
         {
             string sourceSite = null;
             string destinationSite = null;
@@ -431,6 +432,7 @@ namespace WordPressMigrationTool
             string destinationResourceGroup = null;
             string sourceSubscription = null;
             string destinationSubscription = null;
+            retainWpfeatures = true;
 
             foreach (string statusMsg in statusMessages)
             {
@@ -473,6 +475,12 @@ namespace WordPressMigrationTool
                 if (statusMsg.StartsWith(Constants.StatusMessages.destinationSiteSubscription))
                 {
                     destinationSubscription = statusMsg.Split()[4];
+                    continue;
+                }
+
+                if (statusMsg.StartsWith(Constants.StatusMessages.retainWpFeatures))
+                {
+                    retainWpfeatures = String.Equals(statusMsg.Split()[4], "False", StringComparison.OrdinalIgnoreCase) ? false : true;
                     continue;
                 }
             }
