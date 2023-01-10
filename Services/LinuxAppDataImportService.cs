@@ -43,7 +43,7 @@ namespace WordPressMigrationTool
         public Result ImportData()
         {
             Stopwatch timer = Stopwatch.StartNew();
-            HelperUtils.WriteOutputWithNewLine("Preparing to upload App data to the destination site...", this._progressViewRTextBox);
+            HelperUtils.WriteOutputWithNewLine("Preparing to upload wp-content data to the destination site...", this._progressViewRTextBox);
             
             Result result = HelperUtils.ClearAppServiceDirectory(Constants.LIN_APP_SVC_WPCONTENT_DIR, this._ftpUserName, this._ftpPassword, this._appServiceName);
             if (result.status != Status.Completed)
@@ -64,7 +64,7 @@ namespace WordPressMigrationTool
             }
 
             timer.Stop();
-            HelperUtils.WriteOutputWithNewLine("Sucessfully uploaded App Service data to Linux App Service... " +
+            HelperUtils.WriteOutputWithNewLine("Sucessfully uploaded wp-content data to Linux App Service... " +
                 "time taken= " + (timer.ElapsedMilliseconds / 1000) + " seconds\n", this._progressViewRTextBox);
 
             return new Result(Status.Completed, "Successfully uploaded App Service data to destination site.");

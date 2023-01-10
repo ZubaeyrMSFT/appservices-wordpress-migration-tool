@@ -331,6 +331,17 @@ namespace WordPressMigrationTool
             catch { }
             this.Close();
         }
+        private void retryButton_Click(object sender, EventArgs e)
+        {
+            this.bottomTableLayoutPanel2.Controls.Remove(this.cancelButton);
+            this.bottomTableLayoutPanel2.Controls.Add(this.retryButton, 2, 0);
+            try
+            {
+                this._childThread?.Interrupt();
+            }
+            catch { }
+            this.Close();
+        }
 
         private void migrateButton_Click(object sender, EventArgs e)
         {
@@ -404,7 +415,7 @@ namespace WordPressMigrationTool
         private void showResumeMigrationDialogBox(string[] statusMessages, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo, bool retainWpFeatures)
         {
             string message =
-            String.Format("Detected a previous unfinished migration from source site {0} to destination site {1}.. Do you want to resume?", sourceSiteInfo.webAppName, destinationSiteInfo.webAppName);
+            String.Format("Detected a previous unfinished migration from source site {0} to destination site {1}. Do you want to resume?", sourceSiteInfo.webAppName, destinationSiteInfo.webAppName);
             const string caption = "Resume Previous Migration";
             var result = MessageBox.Show(message, caption,
                                          MessageBoxButtons.YesNo,

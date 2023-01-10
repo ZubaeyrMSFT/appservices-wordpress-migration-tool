@@ -156,7 +156,7 @@ namespace WordPressMigrationTool.Utilities
                         // Embed Status message into UserAgent field
                         if (!String.IsNullOrEmpty(message))
                         {
-                            string userAgentValue = "WPMigrationTool/1.0 " + message;
+                            string userAgentValue = "WPMigrationTool/2.0 " + message;
                             client.DefaultRequestHeaders.Add("User-Agent", userAgentValue);
                         }
 

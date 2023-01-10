@@ -95,9 +95,9 @@ namespace WordPressMigrationTool
         {
             HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database details " +
                     "for {0} app... ", this._sourceSiteInfo.webAppName), this._progressViewRTextBox);
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName, this._azureCredential);
             try
             {
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._sourceSiteInfo.subscriptionId, this._sourceSiteInfo.resourceGroupName, this._sourceSiteInfo.webAppName, this._azureCredential);
                 PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
                 string databaseConnectionString = AzureManagementUtils.GetDatabaseConnectionString(webAppResource);
                 HelperUtils.ParseAndUpdateDatabaseConnectionStringForWinAppService(this._sourceSiteInfo, databaseConnectionString);
@@ -120,17 +120,28 @@ namespace WordPressMigrationTool
         {
             HelperUtils.WriteOutputWithNewLine(String.Format("Retrieving WebApp publishing profile and database "
                     + "details for {0}...", this._destinationSiteInfo.webAppName), this._progressViewRTextBox);
+            WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, this._azureCredential);
+
             try
             {
-                WebSiteResource webAppResource = AzureManagementUtils.GetWebSiteResource(this._destinationSiteInfo.subscriptionId, this._destinationSiteInfo.resourceGroupName, this._destinationSiteInfo.webAppName, this._azureCredential);
                 IDictionary<string, string> applicationSettings = AzureManagementUtils.GetApplicationSettingsForAppService(webAppResource);
+                PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
+
+                this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
+                this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
+                this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
+            }
+            catch
+            {
+                return new Result(Status.Failed, "Could not retrieve publishing profile of the destination app service. Please retry the migration");
+            }
+
+            try
+            { 
                 PublishingUserData publishingProfile = AzureManagementUtils.GetPublishingCredentialsForAppService(webAppResource);
 
                 this._destinationSiteInfo.ftpUsername = publishingProfile.PublishingUserName;
                 this._destinationSiteInfo.ftpPassword = publishingProfile.PublishingPassword;
-                this._destinationSiteInfo.databaseHostname = applicationSettings[Constants.APPSETTING_DATABASE_HOST];
-                this._destinationSiteInfo.databaseUsername = applicationSettings[Constants.APPSETTING_DATABASE_USERNAME];
-                this._destinationSiteInfo.databasePassword = applicationSettings[Constants.APPSETTING_DATABASE_PASSWORD];
                 this._destinationSiteInfo.stackVersion = webAppResource.Data.SiteConfig.LinuxFxVersion;
                 this._destinationSiteResource = webAppResource;
 
@@ -138,8 +149,7 @@ namespace WordPressMigrationTool
             }
             catch
             {
-                return new Result(Status.Failed, "Could not retrieve publishing profile and database app-settings of " + this._destinationSiteInfo.webAppName + " appservice. " +
-                    "Please ensure the destination site is a WordPress on Linux app with the default database app settings before retrying.");
+                return new Result(Status.Failed, "Missing Database application settings. Please verify them and try again.");
             }
         }
 

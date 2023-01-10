@@ -59,6 +59,7 @@ namespace WordPressMigrationTool
             this.bottomTableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.migrateButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.retryButton = new System.Windows.Forms.Button();
             this.mainFlowLayoutPanel1.SuspendLayout();
             this.mainPanelTableLayout1.SuspendLayout();
             this.windowsDetailsGroupBox.SuspendLayout();
@@ -319,7 +320,7 @@ namespace WordPressMigrationTool
             this.featureCheckBox.Appearance = Appearance.Normal;
             this.featureCheckBox.Checked = true;
             this.featureCheckBox.Font = new System.Drawing.Font("Segoe UI", 7.0F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.featureCheckBox.Text = "Re-configure AFD, CDN or Blob Storage features if enabled already after migration. \r\n(Enabling this will install W3 Total Cache plugin and override its settings)";
+            this.featureCheckBox.Text = "Restore AFD, CDN or Blob Storage features with the previous selection. \r\n(This will enable W3 Total Cache and override its settings)";
             // 
             // flowLayoutPanel2
             // 
@@ -382,6 +383,17 @@ namespace WordPressMigrationTool
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
+            // retryButton
+            // 
+            this.retryButton.Location = new System.Drawing.Point(212, 5);
+            this.retryButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.retryButton.Name = "cancelButton";
+            this.retryButton.Size = new System.Drawing.Size(97, 57);
+            this.retryButton.TabIndex = 1;
+            this.retryButton.Text = "Cancel";
+            this.retryButton.UseVisualStyleBackColor = true;
+            this.retryButton.Click += new System.EventHandler(this.retryButton_Click);
+            // 
             // MigrationUX
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
@@ -419,6 +431,7 @@ namespace WordPressMigrationTool
         private TableLayoutPanel bottomTableLayoutPanel2;
         private Button migrateButton;
         private Button cancelButton;
+        private Button retryButton;
         private TableLayoutPanel mainPanelTableLayout1;
         private GroupBox windowsDetailsGroupBox;
         private GroupBox linuxDetailsGroupBox;

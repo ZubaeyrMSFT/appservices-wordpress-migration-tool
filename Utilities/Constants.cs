@@ -98,7 +98,7 @@ namespace WordPressMigrationTool.Utilities
         public const string LIN_APP_SVC_MIGRATE_ERROR_MSG_PREFIX = "MIGRATION_ERROR:";
 
         public const string LINUXFXVERSION_PREFIX = "WORDPRESS|";
-        public const string MCR_LATEST_IMAGE_LINUXFXVERSION = "mcr.microsoft.com/appsvc/wordpress-alpine-php:latest";
+        public const string MCR_LATEST_IMAGE_LINUXFXVERSION = "DOCKER|mcr.microsoft.com/appsvc/wordpress-alpine-php:latest";
 
         public static class StatusMessages
         {

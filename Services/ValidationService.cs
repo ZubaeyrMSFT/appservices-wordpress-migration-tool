@@ -86,11 +86,13 @@ namespace WordPressMigrationTool
                     return result;
                 }
 
+                // Commented out WP version comparison since the value in wp-includes/version.php isn't accurate
+                /*
                 result = this.CompareWpVersion();
                 if (result.status != Status.Completed)
                 {
                     return result;
-                }
+                }*/
 
                 result = this.ComparePhpVersion();
                 if (result.status != Status.Completed)
@@ -118,23 +120,11 @@ namespace WordPressMigrationTool
                 return new Result(Status.Failed, String.Format("Destination site {0} has an invalid stack/image selected.", this._destinationSiteInfo.webAppName));
             }
 
+            System.Diagnostics.Debug.WriteLine("linuxfxcersion is " + linuxFxVersion);
             // Verify if the destination site uses an official WordPress on Linux image.
-            if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION || !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
+            if (linuxFxVersion != Constants.MCR_LATEST_IMAGE_LINUXFXVERSION && !linuxFxVersion.StartsWith(Constants.LINUXFXVERSION_PREFIX))
             {
                 this._validationMessages.Add("IMAGE_INVALID");
-            }
-
-            // Verify if the destination WordPress on Linux site has finished first time installation of WordPress
-            string getStatusFileCommand = String.Format("cat {0}", Constants.LIN_APP_WP_DEPLOYMENT_STATUS_FILE_PATH);
-            KuduCommandApiResult kuduCommandApiResult= HelperUtils.ExecuteKuduCommandApi(
-                getStatusFileCommand, 
-                this._destinationSiteInfo.ftpUsername, 
-                this._destinationSiteInfo.ftpPassword, 
-                this._destinationSiteInfo.webAppName);
-            
-            if (kuduCommandApiResult.status != Status.Completed || kuduCommandApiResult.exitCode != 0 || !kuduCommandApiResult.output.Contains(Constants.FIRST_TIME_SETUP_COMPLETETED_MESSAGE))
-            {
-                this._validationMessages.Add("FIRST_TIME_INSTALLATION");
             }
             return new Result(Status.Completed, "");
         }
@@ -219,14 +209,12 @@ namespace WordPressMigrationTool
 
         private Result ShowValidationErrorPopup()
         {
-            System.Diagnostics.Debug.WriteLine("showing validaiton popup.");
-            bool continueMigration = true;
-            ValidationPopupForm phpWarningPopup = new ValidationPopupForm(continueMigration, this._validationMessages, this._sourceSiteInfo, this._destinationSiteInfo);
-            phpWarningPopup.StartPosition = FormStartPosition.Manual;
-            phpWarningPopup.Location = new Point(this._migrationUxForm.Location.X + 50, this._migrationUxForm.Location.Y + 60);
-            phpWarningPopup.ShowDialog();
-            phpWarningPopup.Dispose();
-            if (!continueMigration)
+            ValidationPopupForm validationWarningPopup = new ValidationPopupForm(this._validationMessages, this._sourceSiteInfo, this._destinationSiteInfo);
+            validationWarningPopup.StartPosition = FormStartPosition.Manual;
+            validationWarningPopup.Location = new Point(this._migrationUxForm.Location.X + 50, this._migrationUxForm.Location.Y + 60);
+            validationWarningPopup.ShowDialog();
+            validationWarningPopup.Dispose();
+            if (!validationWarningPopup.GetStatusOnClose())
             {
                 return new Result(Status.Failed, "Stopping current migration.");
             }

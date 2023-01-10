@@ -252,7 +252,7 @@ namespace WordPressMigrationTool
                 return true;
             }
 
-            HelperUtils.WriteOutputWithNewLine("Updating database details for Linux WordPress", this._progressViewRTextBox);
+            HelperUtils.WriteOutputWithNewLine("Updating database details of Linux WordPress", this._progressViewRTextBox);
             
             if (AzureManagementUtils.UpdateApplicationSettingForAppService(webAppResource, Constants.APPSETTING_DATABASE_NAME,
                 destinationSite.databaseName))

@@ -14,9 +14,9 @@ namespace WordPressMigrationTool.Views
     {
         private bool _continueMigration;
 
-        public ValidationPopupForm(bool continueMigration, List<string> validationMessageTypes, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo)
+        public ValidationPopupForm(List<string> validationMessageTypes, SiteInfo sourceSiteInfo, SiteInfo destinationSiteInfo)
         {
-            this._continueMigration = continueMigration;
+            this._continueMigration = true;
             InitializeComponent(validationMessageTypes, sourceSiteInfo, destinationSiteInfo);
         }
 
@@ -26,7 +26,6 @@ namespace WordPressMigrationTool.Views
         /// <param name="numMessages"></param>
         private void InitializeLabels(List<string> validationMessageTypes)
         {
-            System.Diagnostics.Debug.WriteLine("validation messages count is " + validationMessageTypes.Count);
             int msgCount = 0;
 
             if (validationMessageTypes.Contains("IMAGE_INVALID"))
@@ -36,17 +35,10 @@ namespace WordPressMigrationTool.Views
                 msgCount++;
             }
 
-            if (validationMessageTypes.Contains("FIRST_TIME_INSTALLATION"))
+            if (validationMessageTypes.Contains("WP_VERSION"))
             {
                 this.label2.Location = new System.Drawing.Point(60, 21 + msgCount * 140);
                 this.Controls.Add(this.label2);
-                msgCount++;
-            }
-
-            if (validationMessageTypes.Contains("WP_VERSION"))
-            {
-                this.label3.Location = new System.Drawing.Point(60, 21 + msgCount * 140);
-                this.Controls.Add(this.label3);
                 msgCount++;
             }
 
@@ -72,6 +64,11 @@ namespace WordPressMigrationTool.Views
         private void PopupForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        public bool GetStatusOnClose()
+        {
+            return this._continueMigration;
         }
     }
 }
